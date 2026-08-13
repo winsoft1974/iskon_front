@@ -1,0 +1,566 @@
+<div class="animated-fade-in" style="padding: 24px;">
+  <!-- Locked Banner for No Active/Upcoming Package -->
+  <div *ngIf="isEntryLocked" class="glass-panel" style="padding: 14px 20px; margin-bottom: 20px; border-left: 4px solid #ef4444; background: rgba(239,68,68,0.08); display: flex; align-items: center; justify-content: space-between; border-radius: 10px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 20px;">🔒</span>
+      <div>
+        <div style="font-size: 14px; font-weight: 700; color: #ef4444;">Transit & Vehicle Registration Locked</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">Please select an Active or Upcoming Tour Package in the navbar to register vehicles or assign seats. Only data viewing is permitted.</div>
+      </div>
+    </div>
+    <span class="badge badge-danger" style="font-size: 12px; padding: 4px 12px;">Locked Mode</span>
+  </div>
+
+  <!-- Header -->
+  <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.5px;">{{ t('transitTitle') }}</h1>
+      <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Vehicle registration, seat allocation & member management</p>
+    </div>
+    <button class="btn btn-primary" (click)="openRegisterVehicleModal()"
+            [disabled]="isEntryLocked"
+            [style.opacity]="isEntryLocked ? '0.5' : '1'"
+            [style.cursor]="isEntryLocked ? 'not-allowed' : 'pointer'">
+      <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      + Register Vehicle
+    </button>
+  </div>
+
+  <!-- Navigation Tabs & Search Toolbar -->
+  <div class="glass-panel" style="padding: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    
+    <!-- View Switcher Tabs -->
+    <div style="display: flex; gap: 8px;">
+      <button (click)="activeTab = 'vehicles'" 
+              [style.background]="activeTab === 'vehicles' ? 'var(--primary)' : 'var(--bg-tertiary)'"
+              [style.color]="activeTab === 'vehicles' ? '#ffffff' : 'var(--text-primary)'"
+              style="border: 1px solid var(--border-color); padding: 8px 16px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 6px;">
+        🚘 Vehicles List ({{ vehicles.length }})
+      </button>
+      <button (click)="activeTab = 'seating'" 
+              [style.background]="activeTab === 'seating' ? 'var(--primary)' : 'var(--bg-tertiary)'"
+              [style.color]="activeTab === 'seating' ? '#ffffff' : 'var(--text-primary)'"
+              style="border: 1px solid var(--border-color); padding: 8px 16px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 6px;">
+        💺 Seat Allocation
+      </button>
+    </div>
+
+    <!-- Search & Filters (Shown on Vehicles Tab) -->
+    <div *ngIf="activeTab === 'vehicles'" style="display: flex; gap: 12px; align-items: center; flex: 1; max-width: 520px;">
+      <input type="text" 
+             [(ngModel)]="searchTerm" 
+             placeholder="Search by ID, Vehicle Name, Plate, Driver..." 
+             style="font-size: 13px; padding: 8px 14px; border-radius: 8px; flex: 1;" />
+      
+      <select [(ngModel)]="typeFilter" style="font-size: 13px; padding: 8px 12px; border-radius: 8px; width: 140px;">
+        <option value="">All Types</option>
+        <option value="Bus">Bus</option>
+        <option value="Mini Bus">Mini Bus</option>
+        <option value="Tempo Traveller">Tempo Traveller</option>
+        <option value="SUV">SUV</option>
+        <option value="Car">Car</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div *ngIf="loading" style="display: flex; justify-content: center; align-items: center; height: 250px; flex-direction: column; gap: 12px;">
+    <div style="width: 32px; height: 32px; border: 3px solid var(--border-color); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <p style="color: var(--text-secondary); font-size: 14px;">{{ t('transitLoading') }}</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       TAB 1: REGISTERED VEHICLES LIST (FULL CRUD VIEW)
+  ══════════════════════════════════════════════════════ -->
+  <div *ngIf="!loading && activeTab === 'vehicles'">
+    
+    <!-- Vehicles Data Cards Grid -->
+    <div *ngIf="filteredVehicles.length > 0" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px;">
+      
+      <div *ngFor="let v of filteredVehicles" 
+           (click)="selectVehicleForSeating(v)"
+           class="glass-panel seat-hover-effect" 
+           style="padding: 22px; display: flex; flex-direction: column; gap: 14px; position: relative; cursor: pointer; border-left: 4px solid var(--primary);">
+        
+        <!-- Header: Vehicle Code & Type -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <span class="badge badge-info" style="font-size: 10px; font-weight: 700;">{{ v.type }}</span>
+              <span style="font-size: 11px; font-weight: 700; color: var(--primary); background: rgba(99,102,241,0.1); padding: 2px 8px; border-radius: 6px;">
+                ID: {{ v.vehicleCode || ('V-' + v.id) }}
+              </span>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">{{ v.name }}</h3>
+          </div>
+          
+          <div style="text-align: right;">
+            <span style="font-size: 13px; font-weight: 800; background: var(--bg-tertiary); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); color: var(--primary); display: inline-block;">
+              💺 {{ v.capacity }} Seats
+            </span>
+          </div>
+        </div>
+
+        <!-- Vehicle Details Grid -->
+        <div style="font-size: 13px; color: var(--text-secondary); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 12px 0;">
+          <div>
+            <span style="color: var(--text-muted); font-size: 11px; display: block;">Vehicle Number</span>
+            <strong style="color: var(--text-primary); font-size: 13px;">{{ v.numberPlate || '—' }}</strong>
+          </div>
+
+          <div>
+            <span style="color: var(--text-muted); font-size: 11px; display: block;">Registration Date</span>
+            <strong style="color: var(--text-primary); font-size: 12px;">{{ (v.registrationDate || v.createdAt) | date:'dd/MM/yyyy' }}</strong>
+          </div>
+
+          <div>
+            <span style="color: var(--text-muted); font-size: 11px; display: block;">Driver Name</span>
+            <strong style="color: var(--text-primary); font-size: 13px;">{{ v.driverName || 'Not Assigned' }}</strong>
+          </div>
+
+          <div>
+            <span style="color: var(--text-muted); font-size: 11px; display: block;">Contact No.</span>
+            <strong style="color: var(--text-primary); font-size: 13px;">📞 {{ v.driverPhone || '—' }}</strong>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 2px;">
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" (click)="openEditVehicleModal(v, $event)">
+              ✏️ Edit
+            </button>
+            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px; border-color: var(--danger); color: var(--danger);" (click)="deleteVehicle(v.id, $event)">
+              🗑️ Delete
+            </button>
+          </div>
+
+          <button class="btn btn-primary" style="font-size: 12px; padding: 6px 16px; font-weight: 700;" (click)="selectVehicleForSeating(v)">
+            💺 Allocate Seats →
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Empty State for Vehicles List -->
+    <div *ngIf="filteredVehicles.length === 0" class="glass-panel" style="padding: 48px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; max-width: 580px; margin: 30px auto;">
+      <div style="font-size: 42px;">🚘</div>
+      <h3 style="font-size: 20px; font-weight: 700; margin: 0;">No Registered Vehicles Found</h3>
+      <p style="font-size: 14px; color: var(--text-secondary); margin: 0; line-height: 1.5;">
+        You haven't registered any vehicles yet or no vehicles match your search query. Click the button below to register a new vehicle.
+      </p>
+      <button class="btn btn-primary" (click)="openRegisterVehicleModal()">
+        + Register First Vehicle
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       TAB 2: MEMBER-WISE SEAT ALLOCATION (PARTICULAR VEHICLE)
+  ══════════════════════════════════════════════════════ -->
+  <div *ngIf="!loading && activeTab === 'seating'">
+    
+    <!-- Vehicle Selection Bar / Switcher -->
+    <div class="glass-panel" style="padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" (click)="activeTab = 'vehicles'">
+          ← Back to Vehicles List
+        </button>
+
+        <div>
+          <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">
+            {{ selectedTripVehicle?.name || 'Vehicle' }} ({{ selectedTripVehicle?.numberPlate || '—' }})
+          </h2>
+          <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">
+            Vehicle ID: {{ selectedTripVehicle?.vehicleCode || ('V-' + selectedTripVehicle?.id) }} | Driver: {{ selectedTripVehicle?.driverName || '—' }} (📞 {{ selectedTripVehicle?.driverPhone || '—' }})
+          </p>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 13px; font-weight: 700; background: var(--bg-tertiary); padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-color); color: var(--primary);">
+          Total Capacity: {{ selectedTripVehicle?.capacity || 40 }} Seats
+        </span>
+        <button class="btn btn-outline" style="border-color: #2563eb; color: #2563eb; font-weight: 700; font-size: 12px; padding: 6px 14px;" (click)="openBusManifestModal()">
+          🚌 Print Passenger Manifest
+        </button>
+      </div>
+    </div>
+
+    <!-- Seating Chart & Pilgrim Drag-Drop Allocation -->
+    <div class="glass-panel" style="padding: 24px; display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 24px;">
+      
+      <!-- Left Side: Occupancy Chart (Member-wise Grid) -->
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 style="font-size: 18px; font-weight: 700; margin: 0;">Seat Allocation Grid</h3>
+        </div>
+        
+        <!-- Legend -->
+        <div style="display: flex; gap: 16px; margin-bottom: 20px; font-size: 13px; color: var(--text-secondary);">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="width: 14px; height: 14px; background: var(--primary); border-radius: 3px;"></div>
+            <span>Allocated Seat</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="width: 14px; height: 14px; border: 1.5px dashed var(--border-color); border-radius: 3px;"></div>
+            <span>Vacant Seat</span>
+          </div>
+        </div>
+
+        <!-- Seating Grid -->
+        <div *ngIf="selectedTripVehicle" 
+             style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; max-width: 540px; margin: 0 auto; background: var(--bg-tertiary); border: 1.5px solid var(--border-color); border-radius: 16px; padding: 24px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.04);">
+          
+          <!-- Dashboard Front Row -->
+          <div style="grid-column: 1; text-align: center; font-size: 14px; color: var(--text-muted); padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); font-weight: 700; display: flex; align-items: center; justify-content: center;">
+            🚪 Entry
+          </div>
+          <div style="grid-column: 5; text-align: center; border: 1.5px solid var(--border-color); background: var(--bg-secondary); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; justify-content: center; gap: 6px;">
+            🛞 Driver
+          </div>
+          <div style="grid-column: 1 / span 5; height: 1px; background: var(--border-color); margin: 8px 0 12px 0;"></div>
+
+          <!-- Loop Seats (Middle aisle skipped) -->
+          <div *ngFor="let seat of getSeatsForTrip(selectedTrip ? selectedTrip.id : 0, selectedTripVehicle.capacity); let i = index;" 
+               (click)="onSeatClick(seat)"
+               (dragover)="onDragOver($event)"
+               (drop)="onDropOnSeat($event, seat.seatNumber)"
+               [style.grid-column]="(i % 4) < 2 ? (i % 4) + 1 : (i % 4) + 2"
+               [style.background-color]="seat.occupied ? 'var(--primary)' : 'var(--bg-secondary)'"
+               [style.border]="seat.occupied ? '1.5px solid var(--primary)' : '1.5px dashed var(--border-color)'"
+               [style.color]="seat.occupied ? '#fff' : 'var(--text-secondary)'"
+               style="height: 58px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 10px 10px 6px 6px; position: relative; transition: var(--transition); cursor: pointer; padding: 4px;"
+               class="seat-hover-effect">
+            
+            <span style="font-size: 11px; font-weight: 700; opacity: 0.85;">S{{ seat.seatNumber }}</span>
+            <span *ngIf="seat.occupied" style="font-size: 9px; max-width: 95%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; margin-top: 2px;">
+              {{ seat.yatriName }}
+            </span>
+            <span *ngIf="!seat.occupied" style="font-size: 8px; font-weight: 600; opacity: 0.5; text-transform: uppercase; margin-top: 2px;">
+              Vacant
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side: Unallocated Pilgrims / Members List -->
+      <div style="border-left: 1.5px solid var(--border-color); padding-left: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+          <h4 style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin: 0;">
+            👤 Unassigned Members
+          </h4>
+          <span class="badge badge-info" style="font-size: 10px;">{{ getUnassignedYatrisForTrip().length }} remaining</span>
+        </div>
+
+        <p style="font-size: 11px; color: var(--text-muted); font-style: italic; margin: 0; line-height: 1.4;">
+          💡 Tip: Drag a member card and drop it onto any vacant seat (S1, S2, etc.) or click a seat to assign.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 6px; max-height: 380px; overflow-y: auto; padding-right: 2px;">
+          <div *ngFor="let y of getUnassignedYatrisForTrip()"
+               draggable="true"
+               (dragstart)="onDragStart($event, y.id)"
+               style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--bg-secondary); cursor: grab; transition: var(--transition); position: relative;">
+            <span style="font-size: 13px; opacity: 0.4;">⋮⋮</span>
+            <div style="min-width: 0; flex: 1;">
+              <div style="font-weight: 700; font-size: 12px; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{{ y.name }}</div>
+              <div style="font-size: 10px; color: var(--text-muted); margin-top: 1px;">ID: {{ y.id }} · {{ y.gender }} ({{ y.age }}) · 📞 {{ y.phone }}</div>
+            </div>
+          </div>
+          
+          <div *ngIf="getUnassignedYatrisForTrip().length === 0" style="text-align: center; color: var(--text-muted); font-style: italic; font-size: 12px; padding: 24px;">
+            All members are allocated to seats.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Live Route Tracking Panel -->
+    <div class="glass-panel" style="padding: 24px; margin-top: 24px;">
+      <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <span>🗺️</span> Live Vehicle Route Tracking (OSM Map)
+      </h3>
+      <div id="live-transit-map" style="height: 320px; border-radius: 12px; border: 1.5px solid var(--border-color); z-index: 1;"></div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       REGISTER / EDIT VEHICLE MODAL (FULL CRUD FORM)
+  ══════════════════════════════════════════════════════ -->
+  <div *ngIf="showVehicleModal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+    <div class="glass-panel" style="width: 100%; max-width: 540px; padding: 28px; background: var(--bg-secondary); animation: fadeIn 0.3s ease;">
+      
+      <!-- Modal Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h2 style="font-size: 20px; font-weight: 700; margin: 0;">
+          {{ isEditMode ? 'Edit Vehicle Details' : 'Register Yatra Vehicle' }}
+        </h2>
+        <button class="btn btn-outline" style="padding: 4px 8px;" (click)="showVehicleModal = false">✕</button>
+      </div>
+
+      <!-- Registration Form -->
+      <form (submit)="saveVehicle()" style="display: flex; flex-direction: column; gap: 16px;">
+        
+        <!-- Row 1: Registration Date & Vehicle ID/Code -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div>
+            <label style="font-weight: 700; font-size: 12px; display: block; margin-bottom: 4px;">
+              Registration Date *
+            </label>
+            <input type="date" [(ngModel)]="vehicleForm.registrationDate" name="registrationDate" required style="font-size: 13px;" />
+          </div>
+
+          <div>
+            <label style="font-weight: 700; font-size: 12px; display: block; margin-bottom: 4px;">
+              Vehicle ID / Code *
+            </label>
+            <input type="text" [(ngModel)]="vehicleForm.vehicleCode" name="vehicleCode" required placeholder="e.g. BUS-101" style="font-size: 13px;" />
+          </div>
+        </div>
+
+        <!-- Row 2: Vehicle Type & Name -->
+        <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label style="font-weight: 700; font-size: 12px; margin: 0;">Vehicle Type *</label>
+              <button type="button" (click)="showVehicleTypeModal = true"
+                      style="background: none; border: none; color: var(--primary); font-size: 11px; font-weight: 700; cursor: pointer; padding: 0;">
+                ➕ Add New
+              </button>
+            </div>
+            <select [(ngModel)]="vehicleForm.type" name="type" style="font-size: 13px;">
+              <option value="Bus">🚌 Bus</option>
+              <option value="Mini Bus">🚐 Mini Bus</option>
+              <option value="Tempo Traveller">🚐 Tempo Traveller</option>
+              <option value="SUV">🚙 SUV / Innova</option>
+              <option value="Car">🚗 Car</option>
+              <option *ngFor="let vt of vehicleTypes" [value]="vt.name">🚙 {{ vt.name }}</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-weight: 700; font-size: 12px; display: block; margin-bottom: 4px;">
+              Vehicle Name *
+            </label>
+            <input type="text" [(ngModel)]="vehicleForm.name" name="name" required placeholder="e.g. Saffron Express 1" style="font-size: 13px;" />
+          </div>
+        </div>
+
+        <!-- Row 3: Vehicle Number Plate & Seat Capacity -->
+        <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px;">
+          <div>
+            <label style="font-weight: 700; font-size: 12px; display: block; margin-bottom: 4px;">
+              Vehicle Number *
+            </label>
+            <input type="text" [(ngModel)]="vehicleForm.numberPlate" name="numberPlate" required placeholder="e.g. MH-12-PQ-1234" style="font-size: 13px;" />
+          </div>
+
+          <div>
+            <label style="font-weight: 700; font-size: 12px; display: block; margin-bottom: 4px;">
+              Seat Capacity *
+            </label>
+            <input type="number" [(ngModel)]="vehicleForm.capacity" name="capacity" min="1" max="100" required style="font-size: 13px;" />
+          </div>
+        </div>
+
+        <!-- Row 4: Driver Name & Contact Phone -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div>
+            <label style="font-weight: 700; font-size: 12px; display: block; margin-bottom: 4px;">
+              Driver Name
+            </label>
+            <input type="text" [(ngModel)]="vehicleForm.driverName" name="driverName" placeholder="Driver Full Name" style="font-size: 13px;" />
+          </div>
+
+          <div>
+            <label style="font-weight: 700; font-size: 12px; display: block; margin-bottom: 4px;">
+              Contact No.
+            </label>
+            <input type="text" [(ngModel)]="vehicleForm.driverPhone" name="driverPhone" placeholder="Mobile Number" style="font-size: 13px;" />
+          </div>
+        </div>
+
+        <!-- Row 5: Route / Destination -->
+        <div *ngIf="!isEditMode">
+          <label style="font-weight: 700; font-size: 12px; display: block; margin-bottom: 4px;">
+            Route / Destination
+          </label>
+          <input type="text" [(ngModel)]="vehicleForm.route" name="route" placeholder="e.g. Haridwar to Rishikesh" style="font-size: 13px;" />
+        </div>
+
+        <!-- Modal Action Buttons -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+          <button type="button" class="btn btn-outline" (click)="showVehicleModal = false">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 700;">
+            {{ isEditMode ? 'Update Vehicle' : 'Register Vehicle' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Assign Seat Modal -->
+  <div *ngIf="showAssignSeatModal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+    <div class="glass-panel" style="width: 100%; max-width: 480px; padding: 24px; background: var(--bg-secondary); border-top: 3px solid var(--primary); animation: fadeIn 0.25s ease;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">Assign Member to Seat S{{ selectedSeatNumber }}</h3>
+        <button class="btn btn-outline" style="padding: 4px 8px;" (click)="showAssignSeatModal = false">✕</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="font-weight: 600; font-size: 13px;">Search Member / Yatri</label>
+          <input type="text" [(ngModel)]="selectedSeatYatriSearch" (input)="filterYatrisForSeat()" placeholder="Search name or phone..." style="margin-top: 6px;" />
+        </div>
+
+        <div>
+          <label style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block;">Select Member from List</label>
+          <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-tertiary);">
+            <div *ngIf="filteredYatrisForSeat.length === 0" style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px;">
+              No unassigned members found.
+            </div>
+            <div *ngFor="let y of filteredYatrisForSeat"
+                 (click)="selectYatriForSeat(y)"
+                 [style.background]="selectedYatriForSeat?.id === y.id ? 'rgba(99,102,241,0.15)' : 'transparent'"
+                 style="padding: 10px 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: var(--transition);">
+              <div>
+                <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">{{ y.name }}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">ID: {{ y.id }} | 📞 {{ y.phone }}</div>
+              </div>
+              <span *ngIf="selectedYatriForSeat?.id === y.id" style="color: var(--primary); font-weight: 800; font-size: 14px;">✓ Selected</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+          <button class="btn btn-outline" (click)="showAssignSeatModal = false">Cancel</button>
+          <button class="btn btn-primary" [disabled]="!selectedYatriForSeat" (click)="assignSeat()">Confirm Allocation</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unassign Seat Confirm Modal -->
+  <div *ngIf="showUnassignConfirm" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+    <div class="glass-panel" style="width: 100%; max-width: 420px; padding: 24px; background: var(--bg-secondary); border-top: 3px solid var(--danger); animation: fadeIn 0.25s ease;">
+      <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary);">Cancel Seat Allocation</h3>
+      <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">
+        Are you sure you want to unassign Seat S{{ seatToUnassign?.seatNumber }} for member <strong>{{ seatToUnassign?.yatriName }}</strong>?
+      </p>
+      
+      <div style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+        <button class="btn btn-outline" (click)="showUnassignConfirm = false">Keep Seat</button>
+        <button class="btn btn-danger" style="background: var(--danger); border-color: var(--danger); color: #fff;" (click)="confirmUnassignSeat()">Unassign Seat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINTABLE BUS PASSENGER MANIFEST MODAL -->
+  <div *ngIf="showManifestModal"
+       class="modal-overlay"
+       (click)="showManifestModal = false">
+    <div class="glass-panel" (click)="$event.stopPropagation()" style="width: 100%; max-width: 820px; padding: 32px; background: #ffffff; color: #0f172a; border-top: 5px solid #2563eb; border-radius: 16px; max-height: 92vh; overflow-y: auto;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #2563eb; padding-bottom: 16px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 52px; height: 52px; border-radius: 12px; background: #eff6ff; border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; font-size: 26px;">🚌</div>
+          <div>
+            <h2 style="font-size: 20px; font-weight: 800; color: #1e3a8a; margin: 0;">BUS PASSENGER MANIFEST</h2>
+            <p style="font-size: 12px; font-weight: 700; color: #2563eb; margin-top: 2px;">
+              Bus: {{ selectedTripVehicle?.name || 'Bus' }} ({{ selectedTripVehicle?.numberPlate || '—' }}) | Code: {{ selectedTripVehicle?.vehicleCode || ('V-' + selectedTripVehicle?.id) }}
+            </p>
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <span style="background: #dbeafe; color: #1e40af; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 12px;">
+            Allocated: {{ busManifestPassengers.length }} / {{ selectedTripVehicle?.capacity || 40 }} Seats
+          </span>
+          <div style="font-size: 11px; color: #64748b; margin-top: 6px;">Driver: {{ selectedTripVehicle?.driverName || '—' }} (📞 {{ selectedTripVehicle?.driverPhone || '—' }})</div>
+        </div>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 24px;">
+        <thead>
+          <tr style="background: #f1f5f9; color: #334155; border-bottom: 2px solid #cbd5e1; text-align: left;">
+            <th style="padding: 10px; text-align: center; width: 60px;">{{ t('SeatNo') }}</th>
+            <th style="padding: 10px;">{{ t('PassengerName') }}</th>
+            <th style="padding: 10px; width: 100px;">{{ t('AgeSex') }}</th>
+            <th style="padding: 10px; width: 130px;">{{ t('ContactNo') }}</th>
+            <th style="padding: 10px; width: 100px; text-align: center;">{{ t('status') }}</th>
+            <th style="padding: 10px; width: 120px; text-align: center;">{{ t('Signature') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of busManifestPassengers" style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 10px; text-align: center; font-weight: 900; background: #f8fafc; color: #2563eb;">#{{ p.seatNumber }}</td>
+            <td style="padding: 10px; font-weight: 700; color: #0f172a;">{{ p.name }}</td>
+            <td style="padding: 10px; color: #475569;">{{ p.age }} yrs / {{ p.gender }}</td>
+            <td style="padding: 10px; font-weight: 600; color: #1e293b;">📞 {{ p.phone }}</td>
+            <td style="padding: 10px; text-align: center;">
+              <span style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px;"
+                    [style.background]="p.checkedIn ? '#dcfce7' : '#fef3c7'"
+                    [style.color]="p.checkedIn ? '#166534' : '#92400e'">
+                {{ p.checkedIn ? '✅ Boarded' : '⏳ Confirmed' }}
+              </span>
+            </td>
+            <td style="padding: 10px; border-bottom: 1px dashed #cbd5e1;"></td>
+          </tr>
+          <tr *ngIf="busManifestPassengers.length === 0">
+            <td colspan="6" style="padding: 24px; text-align: center; color: #64748b; font-style: italic;">No seat allocations recorded for this bus.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="no-print" style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+        <button class="btn btn-outline" style="color: #475569;" (click)="showManifestModal = false">Close</button>
+        <button class="btn btn-primary" style="background: #2563eb; border-color: #2563eb; font-weight: 800;" (click)="printBusManifest()">
+          🖨️ Print Passenger Manifest
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ QUICK ADD VEHICLE TYPE MODAL ══ -->
+<div class="modal-overlay" *ngIf="showVehicleTypeModal" (click)="showVehicleTypeModal = false"
+     style="position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(8px); z-index: 1100; display: flex; justify-content: center; align-items: center; padding: 20px;">
+  <div class="glass-panel" style="width: 100%; max-width: 420px; padding: 24px; background: var(--bg-secondary); border-radius: 16px;" (click)="$event.stopPropagation()">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h3 style="font-size: 16px; font-weight: 800; margin: 0; color: var(--text-primary);">➕ Add New Vehicle Type</h3>
+      <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" (click)="showVehicleTypeModal = false">✕</button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div>
+        <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Vehicle Type Name *</label>
+        <input type="text" [(ngModel)]="newVehicleTypeName" placeholder="e.g. AC Sleeper Bus, Luxury Traveller"
+               style="width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-primary); font-size: 13px; margin-top: 4px;" />
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+        <button type="button" class="btn btn-outline" style="padding: 6px 14px; font-size: 12px;" (click)="showVehicleTypeModal = false">Cancel</button>
+        <button type="button" class="btn btn-primary" style="padding: 6px 16px; font-size: 12px; font-weight: 700;" (click)="saveVehicleType()" [disabled]="vehicleTypeSaving">
+          <span *ngIf="!vehicleTypeSaving">💾 Save Type</span>
+          <span *ngIf="vehicleTypeSaving">Saving...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.seat-hover-effect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.18);
+}
+</style>

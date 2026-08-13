@@ -1,0 +1,248 @@
+<div class="glass-panel animated-fade-in" style="padding: 24px; border-top: 3px solid var(--secondary);">
+  <!-- Header Row -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+    <div>
+      <h3 style="font-size: 20px; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+        <span>🍽️</span> Prasadam Tracker
+      </h3>
+    </div>
+
+    <!-- Date Picker + Meal Selector -->
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+
+      <!-- 📅 Date Selector -->
+      <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-tertiary); border: 1.5px solid var(--border-color); border-radius: 10px; padding: 8px 14px;">
+        <span style="font-size: 14px;">📅</span>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary); white-space: nowrap;">Date:</label>
+        <input type="date" [(ngModel)]="ops.prasadamDate"
+               style="border: none; background: transparent; font-size: 13px; font-weight: 700; color: var(--text-primary); cursor: pointer; outline: none;" />
+      </div>
+
+      <!-- 🍽️ Meal Selector Pills -->
+      <div style="display: flex; border: 1.5px solid var(--border-color); border-radius: 10px; overflow: hidden; background: var(--bg-tertiary);">
+        <button (click)="ops.prasadamMeal = 'Breakfast'"
+                [style.background]="ops.prasadamMeal === 'Breakfast' ? 'var(--secondary)' : 'transparent'"
+                [style.color]="ops.prasadamMeal === 'Breakfast' ? '#fff' : 'var(--text-secondary)'"
+                style="border: none; padding: 10px 18px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">
+          🍳 Breakfast
+        </button>
+        <button (click)="ops.prasadamMeal = 'Lunch'"
+                [style.background]="ops.prasadamMeal === 'Lunch' ? 'var(--secondary)' : 'transparent'"
+                [style.color]="ops.prasadamMeal === 'Lunch' ? '#fff' : 'var(--text-secondary)'"
+                style="border: none; padding: 10px 18px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">
+          🍛 Lunch
+        </button>
+        <button (click)="ops.prasadamMeal = 'Dinner'"
+                [style.background]="ops.prasadamMeal === 'Dinner' ? 'var(--secondary)' : 'transparent'"
+                [style.color]="ops.prasadamMeal === 'Dinner' ? '#fff' : 'var(--text-secondary)'"
+                style="border: none; padding: 10px 18px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">
+          🥗 Dinner
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date info banner + Quick Food Expense Button -->
+  <div style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 8px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 14px;">📅</span>
+      <span style="font-size: 13px; font-weight: 600; color: var(--primary);">{{ ops.prasadamDate }} — {{ ops.prasadamMeal }} Prasadam</span>
+    </div>
+
+    <button *ngIf="ops.canEditExpense && ops.auth.hasPermission('Food', 'addExpense')"
+            (click)="ops.openAddFoodExpenseFromPrasadam()"
+            [disabled]="ops.isEntryLocked"
+            [style.opacity]="ops.isEntryLocked ? '0.5' : '1'"
+            [style.cursor]="ops.isEntryLocked ? 'not-allowed' : 'pointer'"
+            class="btn btn-primary" style="padding: 6px 14px; font-size: 12px; font-weight: 700; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border: none;">
+      ➕ Add Food Expense (अन्न विभाग खर्च)
+    </button>
+  </div>
+
+  <!-- 4 Summary Analytics Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 20px;">
+    <div style="background: rgba(99,102,241,0.06); border: 1.5px solid rgba(99,102,241,0.18); border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">👥 Total Pilgrims</div>
+        <div style="font-size: 24px; font-weight: 900; color: var(--primary); margin-top: 4px;">{{ ops.allowedYatris.length }}</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">{{ ops.getPackageName() }}</div>
+      </div>
+      <div style="font-size: 32px;">👥</div>
+    </div>
+
+    <div style="background: rgba(16,185,129,0.06); border: 1.5px solid rgba(16,185,129,0.18); border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 11px; font-weight: 700; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em;">✅ Served ({{ ops.prasadamMeal }})</div>
+        <div style="font-size: 24px; font-weight: 900; color: var(--secondary); margin-top: 4px;">
+          {{ ops.prasadamTakenYatris.length }} <span style="font-size: 14px; font-weight: 600;">/ {{ ops.allowedYatris.length }}</span>
+        </div>
+        <div style="font-size: 11px; color: var(--secondary); font-weight: 700; margin-top: 2px;">
+          {{ ops.allowedYatris.length > 0 ? (ops.prasadamTakenYatris.length / ops.allowedYatris.length * 100 | number:'1.0-0') : 0 }}% complete
+        </div>
+      </div>
+      <div style="font-size: 32px;">🍱</div>
+    </div>
+
+    <div style="background: rgba(245,158,11,0.06); border: 1.5px solid rgba(245,158,11,0.18); border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 11px; font-weight: 700; color: #d97706; text-transform: uppercase; letter-spacing: 0.05em;">⏳ Pending</div>
+        <div style="font-size: 24px; font-weight: 900; color: #d97706; margin-top: 4px;">
+          {{ ops.prasadamPendingYatris.length }} <span style="font-size: 14px; font-weight: 600;">pilgrims</span>
+        </div>
+        <div style="font-size: 11px; color: #d97706; font-weight: 700; margin-top: 2px;">Awaiting prasadam</div>
+      </div>
+      <div style="font-size: 32px;">⏳</div>
+    </div>
+
+    <!-- Food Dept Expense & Cost/Plate Card -->
+    <div style="background: rgba(249,115,22,0.08); border: 1.5px solid rgba(249,115,22,0.25); border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 11px; font-weight: 800; color: #ea580c; text-transform: uppercase; letter-spacing: 0.05em;">🍲 Food Dept Expense</div>
+        <div style="font-size: 22px; font-weight: 900; color: #ea580c; margin-top: 2px;">
+          ₹ {{ ops.foodExpensesTotal | number:'1.0-0' }}
+        </div>
+        <div style="font-size: 11px; color: #c2410c; font-weight: 700; margin-top: 2px;">
+          Cost / Plate: <span style="background: rgba(234,88,12,0.15); padding: 2px 6px; border-radius: 4px;">₹ {{ ops.costPerPrasadamPlate | number:'1.1-1' }}</span>
+        </div>
+      </div>
+      <div style="font-size: 32px;">📊</div>
+    </div>
+  </div>
+
+  <!-- Food Department Financial Breakdown Strip -->
+  <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+    <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+      <div>
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TOTAL MEALS SERVED</div>
+        <div style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-top: 2px;">🍱 {{ ops.totalPrasadamMealsServed }} Meals</div>
+      </div>
+      <div style="border-left: 1px solid var(--border-color); padding-left: 20px;">
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);">SELECTED DATE MEALS</div>
+        <div style="font-size: 16px; font-weight: 800; color: var(--primary); margin-top: 2px;">📅 {{ ops.todayPrasadamMealsServed }} Meals</div>
+      </div>
+      <div style="border-left: 1px solid var(--border-color); padding-left: 20px;">
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);">PER PILGRIM FOOD BUDGET</div>
+        <div style="font-size: 16px; font-weight: 800; color: var(--secondary); margin-top: 2px;">👤 ₹ {{ ops.costPerYatriFood | number:'1.0-0' }} / Pilgrim</div>
+      </div>
+    </div>
+
+    <button (click)="ops.openAddFoodExpenseFromPrasadam()"
+            class="btn btn-outline" style="font-size: 12px; font-weight: 700; border-color: #ea580c; color: #ea580c; padding: 6px 14px;">
+      ➕ Add Grocery / Catering Expense
+    </button>
+  </div>
+
+  <!-- Controls & Search Strip -->
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+    <!-- Sub-Tabs: Pending vs Taken -->
+    <div style="display: flex; gap: 8px;">
+      <button (click)="ops.prasadamTab = 'pending'"
+              [class.btn-primary]="ops.prasadamTab === 'pending'"
+              [class.btn-outline]="ops.prasadamTab !== 'pending'"
+              style="font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;">
+        ⏳ Pending ({{ ops.prasadamPendingYatris.length }})
+      </button>
+      <button (click)="ops.prasadamTab = 'taken'"
+              [class.btn-primary]="ops.prasadamTab === 'taken'"
+              [class.btn-outline]="ops.prasadamTab !== 'taken'"
+              style="font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;">
+        ✅ Served ({{ ops.prasadamTakenYatris.length }})
+      </button>
+    </div>
+
+    <!-- Search input -->
+    <div style="width: 280px;">
+      <input type="text" [(ngModel)]="ops.prasadamSearchQuery" placeholder="🔍 Search by name, phone or Yatri ID..."
+             style="font-size: 12px; padding: 8px 14px; border-radius: 8px; width: 100%;" />
+    </div>
+  </div>
+
+  <!-- TAB 1: PENDING PRASADAM LIST -->
+  <div *ngIf="ops.prasadamTab === 'pending'" class="table-container animated-fade-in">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th style="width: 50px; text-align: center;">#</th>
+          <th>Pilgrim Name</th>
+          <th>Phone</th>
+          <th>Age / Gender</th>
+          <th>Booking Type</th>
+          <th style="text-align: center;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let y of ops.prasadamPendingYatris; let idx = index">
+          <td style="text-align: center; font-weight: 700; color: var(--text-muted);">{{ idx + 1 }}</td>
+          <td style="font-weight: 600; color: var(--text-primary);">
+            <div>{{ y.name }}</div>
+            <div *ngIf="y.initiatedName" style="font-size: 11px; font-style: italic; color: var(--primary);">Initiated: {{ y.initiatedName }}</div>
+          </td>
+          <td style="font-size: 13px; color: var(--text-secondary);">{{ y.phone || '—' }}</td>
+          <td style="font-size: 12px; color: var(--text-secondary);">{{ y.age ? y.age + ' yrs' : '—' }} / {{ y.gender || '—' }}</td>
+          <td><span class="badge badge-info">{{ y.bookingType || 'Regular' }}</span></td>
+          <td style="text-align: center;">
+            <button type="button" (click)="ops.markPrasadamServed(y)"
+                    [disabled]="ops.prasadamMarkingInProgress.has(ops.getPrasadamKey(y.id, ops.prasadamCheckpoints[ops.prasadamMeal] || 'Meal-'+ops.prasadamMeal, ops.prasadamDate))"
+                    class="btn btn-primary"
+                    style="font-size: 11px; padding: 6px 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; border-radius: 6px;">
+              🍱 Mark Served
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="ops.prasadamPendingYatris.length === 0">
+          <td colspan="6" style="text-align: center; padding: 36px; color: var(--secondary); font-weight: 700;">
+            🎉 All pilgrims have received {{ ops.prasadamMeal }} prasadam on {{ ops.prasadamDate }}!
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TAB 2: TAKEN PRASADAM LIST -->
+  <div *ngIf="ops.prasadamTab === 'taken'" class="table-container animated-fade-in">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th style="width: 50px; text-align: center;">#</th>
+          <th>Pilgrim Name</th>
+          <th>Phone</th>
+          <th>Age / Gender</th>
+          <th>Meal</th>
+          <th>Date</th>
+          <th style="text-align: center;">Status</th>
+          <th style="text-align: center;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let y of ops.prasadamTakenYatris; let idx = index">
+          <td style="text-align: center; font-weight: 700; color: var(--text-muted);">{{ idx + 1 }}</td>
+          <td style="font-weight: 600; color: var(--text-primary);">
+            <div>{{ y.name }}</div>
+            <div *ngIf="y.initiatedName" style="font-size: 11px; font-style: italic; color: var(--primary);">Initiated: {{ y.initiatedName }}</div>
+          </td>
+          <td style="font-size: 13px; color: var(--text-secondary);">{{ y.phone || '—' }}</td>
+          <td style="font-size: 12px; color: var(--text-secondary);">{{ y.age ? y.age + ' yrs' : '—' }} / {{ y.gender || '—' }}</td>
+          <td><span class="badge badge-info">{{ ops.prasadamMeal }}</span></td>
+          <td style="font-size: 12px; color: var(--text-muted);">{{ ops.prasadamDate }}</td>
+          <td style="text-align: center;">
+            <span class="badge badge-success" style="font-weight: 700; padding: 4px 10px;">
+              ✓ Served
+            </span>
+          </td>
+          <td style="text-align: center;">
+            <button type="button" (click)="ops.cancelPrasadamServed(y)"
+                    class="btn btn-outline"
+                    style="font-size: 11px; padding: 4px 10px; border-color: var(--danger); color: var(--danger); font-weight: 700;">
+              ↩️ Undo
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="ops.prasadamTakenYatris.length === 0">
+          <td colspan="8" style="text-align: center; padding: 36px; color: var(--text-muted); font-style: italic;">
+            No {{ ops.prasadamMeal }} prasadam served on {{ ops.prasadamDate }} yet.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

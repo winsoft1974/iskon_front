@@ -1,0 +1,920 @@
+<div class="animated-fade-in" style="padding: 24px; display: flex; flex-direction: column; gap: 24px;">
+  <!-- Locked Banner for No Active/Upcoming Package -->
+  <div *ngIf="isEntryLocked" class="glass-panel" style="padding: 14px 20px; border-left: 4px solid #ef4444; background: rgba(239,68,68,0.08); display: flex; align-items: center; justify-content: space-between; border-radius: 10px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 20px;">🔒</span>
+      <div>
+        <div style="font-size: 14px; font-weight: 700; color: #ef4444;">Room Allocation & Hotel Entries Locked</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">Please select an Active or Upcoming Tour Package in the navbar to add room allocations or hotel entries. Only data viewing is permitted.</div>
+      </div>
+    </div>
+    <span class="badge badge-danger" style="font-size: 12px; padding: 4px 12px;">Locked Mode</span>
+  </div>
+
+  <!-- ══ HEADER ══ -->
+  <div
+    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 16px;">
+    <div>
+      <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.5px;">{{ t('hotelsTitle') }}
+      </h1>
+    </div>
+
+    <!-- ══ TABS SWITCHER ══ -->
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <button class="btn btn-outline"
+        style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; border-color: #10B981; color: #10B981;"
+        (click)="exportAllocationsExcel()" title="Export Room Allocations to Excel">
+        📊 Export Room Allocations (.xlsx)
+      </button>
+
+      <button class="btn btn-outline"
+        [disabled]="isEntryLocked"
+        style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; border-color: var(--secondary); color: var(--secondary);"
+        (click)="hotelFileInput.click()" title="Import Hotel Rooms & Yatri Allocations from Excel">
+        📥 Import Room Allocations
+      </button>
+      <input type="file" #hotelFileInput (change)="onExcelRoomFileSelected($event)" accept=".xlsx,.xls,.csv"
+        style="display: none;" />
+
+      <button class="btn" [class.btn-primary]="activeTab === 'allocations'"
+        [class.btn-outline]="activeTab !== 'allocations'" (click)="activeTab = 'allocations'">
+        {{ t('hotelsTabAllocations') }}
+      </button>
+      <button class="btn" [class.btn-primary]="activeTab === 'master'" [class.btn-outline]="activeTab !== 'master'"
+        (click)="activeTab = 'master'">
+        {{ t('hotelsTabMaster') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ LOADING ══ -->
+  <div *ngIf="loading"
+    style="display: flex; justify-content: center; align-items: center; height: 250px; flex-direction: column; gap: 12px;">
+    <div
+      style="width: 32px; height: 32px; border: 3px solid var(--border-color); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;">
+    </div>
+    <p style="color: var(--text-secondary); font-size: 14px;">{{ t('hotelsLoading') }}</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- ══ TAB 1: PILGRIM ALLOCATIONS ══ -->
+    <div *ngIf="activeTab === 'allocations'" class="animated-fade-in"
+      style="display: flex; flex-direction: column; gap: 28px;">
+
+      <!-- Active Tour Filter Banner -->
+      <div *ngIf="selectedPackageId"
+        style="padding: 12px 16px; background: rgba(79,70,229,0.06); border: 1px solid rgba(79,70,229,0.15); border-radius: 10px; font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 16px;">💡</span>
+        <span>Allocating rooms & beds for active tour. Select any registered ashram/hotel below to view rooms and assign
+          pilgrims.</span>
+      </div>
+
+      <!-- ══ LEVEL 1: HOTEL CARDS (Always visible) ══ -->
+      <div>
+        <p
+          style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">
+          Select Ashram / Hotel ({{ filteredHotels.length }})
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px;">
+          <div *ngFor="let h of filteredHotels" (click)="selectHotel(h, true, false)" class="glass-panel"
+            [style.border-color]="selectedHotel?.id === h.id ? 'var(--primary)' : 'var(--border-color)'"
+            [style.box-shadow]="selectedHotel?.id === h.id ? '0 0 16px rgba(99,102,241,0.15)' : ''"
+            [style.background]="selectedHotel?.id === h.id ? 'rgba(99,102,241,0.03)' : 'var(--bg-secondary)'"
+            style="padding: 18px; cursor: pointer; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 12px; transition: var(--transition);">
+
+            <div *ngIf="selectedHotel?.id === h.id"
+              style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--primary);"></div>
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3
+                style="font-size: 16px; font-weight: 800; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 170px;">
+                {{ h.name }}
+              </h3>
+              <span class="badge badge-info" style="font-size: 11px; padding: 2px 8px; flex-shrink: 0;">★ {{ h.rating
+                }}</span>
+            </div>
+
+            <div>
+              <p
+                style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
+                📍 {{ h.city }}
+              </p>
+              <p style="font-size: 11px; color: var(--text-muted);">
+                Manager: {{ h.managerName || 'Not Assigned' }}
+              </p>
+            </div>
+
+            <div
+              style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: auto;">
+              <span style="font-weight: 600; color: var(--primary);">{{ getRoomCount(h.id) }} Rooms Configured</span>
+              <span>📞 {{ h.phone || 'N/A' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State if no hotels match filter -->
+        <div *ngIf="filteredHotels.length === 0" class="glass-panel"
+          style="padding: 48px; text-align: center; color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+          <span style="font-size: 36px;">🏨</span>
+          <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0;">No Ashrams Allocated
+          </h3>
+          <p style="font-size: 13px; max-width: 440px; margin: 0; line-height: 1.5;">
+            No hotels/ashrams have room allocations for the active tour package. Switch the active tour to <strong>All
+              Devotional Packages</strong> in the header to see all ashrams and create allocations.
+          </p>
+        </div>
+      </div>
+
+      <!-- ══ LEVEL 2: ROOM LIST (Visible below Level 1 if selectedHotel is set) ══ -->
+      <div *ngIf="selectedHotel" id="room-list-container" class="glass-panel animated-fade-in"
+        style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+
+        <!-- Header -->
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0;">
+              🚪 Rooms in {{ selectedHotel.name }}
+            </h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+              Select a room to view occupancy layout and allocate pilgrims.
+            </p>
+          </div>
+
+          <div style="width: 250px;">
+            <input type="text" [(ngModel)]="roomSearchQuery" placeholder="🔍 Filter rooms by number or type..."
+              style="font-size: 12px; padding: 8px 12px; border-radius: 8px; width: 100%;" />
+          </div>
+        </div>
+
+        <!-- Status Filter Buttons -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 4px;">
+          <!-- All -->
+          <button type="button" class="btn" [class.btn-primary]="roomFilterStatus === 'all'"
+            [class.btn-outline]="roomFilterStatus !== 'all'" (click)="roomFilterStatus = 'all'"
+            style="font-size: 11px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 20px; font-weight: 600;">
+            🌐 All ({{ getRoomStatusCount('all') }})
+          </button>
+
+          <!-- Empty -->
+          <button type="button" class="btn"
+            [style.background]="roomFilterStatus === 'empty' ? 'var(--secondary)' : 'transparent'"
+            [style.color]="roomFilterStatus === 'empty' ? '#fff' : 'var(--secondary)'"
+            [style.border-color]="'var(--secondary)'" (click)="roomFilterStatus = 'empty'"
+            style="font-size: 11px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 20px; font-weight: 600; border: 1.5px solid;">
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: currentColor;"></span>
+            Empty ({{ getRoomStatusCount('empty') }})
+          </button>
+
+          <!-- Partial -->
+          <button type="button" class="btn"
+            [style.background]="roomFilterStatus === 'partial' ? 'var(--accent-orange)' : 'transparent'"
+            [style.color]="roomFilterStatus === 'partial' ? '#fff' : 'var(--accent-orange)'"
+            [style.border-color]="'var(--accent-orange)'" (click)="roomFilterStatus = 'partial'"
+            style="font-size: 11px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 20px; font-weight: 600; border: 1.5px solid;">
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: currentColor;"></span>
+            Partial ({{ getRoomStatusCount('partial') }})
+          </button>
+
+          <!-- Full -->
+          <button type="button" class="btn"
+            [style.background]="roomFilterStatus === 'full' ? 'var(--accent-rose)' : 'transparent'"
+            [style.color]="roomFilterStatus === 'full' ? '#fff' : 'var(--accent-rose)'"
+            [style.border-color]="'var(--accent-rose)'" (click)="roomFilterStatus = 'full'"
+            style="font-size: 11px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 20px; font-weight: 600; border: 1.5px solid;">
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: currentColor;"></span>
+            Full ({{ getRoomStatusCount('full') }})
+          </button>
+        </div>
+
+        <!-- Rooms Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+          <div *ngFor="let rm of filteredHotelRooms" (click)="selectRoom(rm)" class="glass-panel"
+            [style.border-color]="selectedRoom?.id === rm.id ? 'var(--primary)' : 'var(--border-color)'"
+            [style.box-shadow]="selectedRoom?.id === rm.id ? '0 0 0 3px rgba(99,102,241,0.1)' : ''"
+            [style.background]="selectedRoom?.id === rm.id ? 'rgba(99,102,241,0.03)' : 'var(--bg-secondary)'"
+            style="padding: 16px; cursor: pointer; transition: var(--transition); position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 10px;">
+
+            <div *ngIf="selectedRoom?.id === rm.id"
+              style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--primary);"></div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h4
+                style="font-size: 16px; font-weight: 800; color: var(--primary); margin: 0; display: inline-flex; align-items: center; gap: 6px;">
+                <!-- State Dot Icon -->
+                <span *ngIf="getOccupied(rm) === 0"
+                  style="width: 8px; height: 8px; border-radius: 50%; background: var(--secondary);"
+                  title="Empty"></span>
+                <span *ngIf="getOccupied(rm) > 0 && getOccupied(rm) < rm.capacity"
+                  style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-orange);"
+                  title="Partially Filled"></span>
+                <span *ngIf="getOccupied(rm) === rm.capacity"
+                  style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-rose);"
+                  title="Full"></span>
+                Room {{ rm.roomNumber }}
+              </h4>
+              <span class="badge" [class.badge-success]="rm.type === 'Deluxe'"
+                [class.badge-info]="rm.type === 'Standard'" [class.badge-warning]="rm.type === 'Dormitory'">{{ rm.type
+                }}</span>
+            </div>
+
+            <div style="font-size: 11px; color: var(--text-muted);">
+              Floor {{ rm.floor }} · {{ rm.buildingName }}
+            </div>
+
+            <div style="margin-top: auto; display: flex; flex-direction: column; gap: 4px;">
+              <div
+                style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary);">
+                <span>Beds Occupancy</span>
+                <span style="font-weight: 700;">{{ getOccupied(rm) }} / {{ rm.capacity }}</span>
+              </div>
+              <div style="height: 5px; background: var(--border-color); border-radius: 3px; overflow: hidden;">
+                <div [style.width.%]="(getOccupied(rm) / rm.capacity) * 100"
+                  [style.background]="getOccupied(rm) === rm.capacity ? 'var(--accent-rose)' : getOccupied(rm) > 0 ? 'var(--accent-orange)' : 'var(--secondary)'"
+                  style="height: 100%; border-radius: 3px; transition: width 0.3s ease;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="filteredHotelRooms.length === 0"
+            style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; font-style: italic; padding: 24px;">
+            No rooms found matching your search.
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ LEVEL 3: ALLOCATIONS MAP & PILGRIMS CHECKLIST (Visible inline when selectedRoom is set) ══ -->
+      <div *ngIf="selectedRoom" id="allocation-container" class="glass-panel animated-fade-in"
+        style="padding: 24px; display: flex; flex-direction: column; gap: 20px; border-color: var(--primary);">
+
+        <!-- Room Allocation Header -->
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid var(--border-color); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0;">
+              🛏️ Bed Allocations for Room {{ selectedRoom.roomNumber }}
+            </h3>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+              Select a vacant slot in the map, choose pilgrims on the right, and click Allocate.
+            </p>
+          </div>
+          <div style="text-align: right;">
+            <span style="font-weight: 800; font-size: 22px; color: var(--primary);">{{ getOccupied(selectedRoom)
+              }}</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;"> / {{ selectedRoom.capacity }}
+              Beds Occupied</span>
+          </div>
+        </div>
+
+        <!-- Inline allocation panels side-by-side -->
+        <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; align-items: start;">
+
+          <!-- Left Sub-Panel: Beds Map -->
+          <div class="glass-panel" style="padding: 20px; background: var(--bg-tertiary);">
+            <h4
+              style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+              🛏️ Beds Map
+            </h4>
+
+            <div
+              style="display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 12px; margin-bottom: 14px;">
+              <div *ngFor="let bed of getBedsForRoom(selectedRoom)"
+                (click)="!bed.allocated ? toggleAssignBed(bed.index) : null" (dragover)="onDragOver($event)"
+                (drop)="onDropOnBed($event, bed.index)"
+                style="border: 2px solid; border-radius: 10px; padding: 12px; text-align: center; transition: var(--transition); cursor: pointer; position: relative;"
+                [style.border-color]="bed.allocated ? 'var(--secondary)' : (selectedBedIndexes.includes(bed.index) ? 'var(--primary)' : 'var(--border-color)')"
+                [style.box-shadow]="selectedBedIndexes.includes(bed.index) ? '0 0 0 3px rgba(99,102,241,0.15)' : ''"
+                [style.background]="bed.allocated ? 'rgba(5,150,105,0.04)' : (selectedBedIndexes.includes(bed.index) ? 'rgba(99,102,241,0.04)' : 'var(--bg-secondary)')">
+
+                <!-- Selected target indicator -->
+                <span *ngIf="selectedBedIndexes.includes(bed.index)"
+                  style="position: absolute; top: 4px; right: 4px; font-size: 8px; font-weight: 800; text-transform: uppercase; background: var(--primary); color: #fff; padding: 2px 5px; border-radius: 4px;">Target</span>
+
+                <div style="font-size: 24px; margin-bottom: 4px;">🛏️</div>
+                <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Bed {{
+                  bed.index + 1 }}</div>
+
+                <!-- Allocated Yatri details -->
+                <div *ngIf="bed.allocated">
+                  <div
+                    style="font-size: 12px; font-weight: 700; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 95px; margin-bottom: 6px;"
+                    [title]="bed.yatriName">
+                    {{ bed.yatriName }}
+                  </div>
+                  <button type="button" class="btn btn-outline"
+                    style="font-size: 9px; padding: 2px 6px; border-color: var(--danger); color: var(--danger);"
+                    (click)="unassignBed(bed); $event.stopPropagation()">Release</button>
+                </div>
+
+                <!-- Vacant Details -->
+                <div *ngIf="!bed.allocated">
+                  <div style="font-size: 10px; color: var(--text-muted); font-style: italic; margin-bottom: 4px;">Vacant
+                  </div>
+                  <span style="font-size: 9px; color: var(--primary); font-weight: 700; text-decoration: underline;">
+                    {{ selectedBedIndexes.includes(bed.index) ? 'Selected' : 'Assign Bed' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div
+              style="display: flex; flex-direction: column; gap: 5px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 10px;">
+              <span style="display: flex; align-items: center; gap: 6px;"><span
+                  style="width: 8px; height: 8px; border-radius: 50%; background: var(--secondary); display: inline-block;"></span>
+                Occupied / Allocated</span>
+              <span style="display: flex; align-items: center; gap: 6px;"><span
+                  style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary); display: inline-block;"></span>
+                Target Bed Selected</span>
+              <span style="display: flex; align-items: center; gap: 6px;"><span
+                  style="width: 8px; height: 8px; border-radius: 50%; background: var(--border-color); display: inline-block;"></span>
+                Vacant Bed</span>
+            </div>
+          </div>
+
+          <!-- Right Sub-Panel: Pilgrims Checklist -->
+          <div class="glass-panel" style="padding: 20px; background: var(--bg-tertiary);">
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+              <h4 style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">
+                👤 Pilgrim Allocation
+              </h4>
+              <span class="badge badge-info" style="font-size: 10px;">
+                {{ memberSearchQuery ? (filteredUnassignedYatris.length + ' / ' + getUnallocatedYatris().length) :
+                getUnallocatedYatris().length }} unassigned
+              </span>
+            </div>
+
+            <!-- Allocate trigger button -->
+            <!-- Allocate trigger button (Shows Auto-Allocate if no bed is manually selected) -->
+            <div *ngIf="selectedYatriIds.length > 0"
+              style="margin-bottom: 12px; padding: 10px; background: rgba(99,102,241,0.06); border: 1.5px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; gap: 8px;">
+              <div style="font-size: 11px; color: var(--text-secondary); text-align: center;">
+                <span *ngIf="selectedBedIndexes.length > 0">Allocating <strong>{{ selectedYatriIds.length }}
+                    pilgrim(s)</strong> to <strong>{{ selectedBedIndexes.length }} manually selected
+                    bed(s)</strong>.</span>
+                <span *ngIf="selectedBedIndexes.length === 0">Auto-allocating <strong>{{ selectedYatriIds.length }}
+                    pilgrim(s)</strong> to available vacant beds.</span>
+              </div>
+              <button class="btn btn-primary"
+                style="font-size: 12px; padding: 7px 12px; width: 100%; border-radius: 6px; font-weight: 600;"
+                (click)="allocateSelectedYatris()">
+                ✅ {{ selectedBedIndexes.length === 0 ? 'Auto-Allocate to Room' : 'Allocate to Selected Beds' }}
+              </button>
+            </div>
+
+            <!-- Search pilgrims -->
+            <div style="margin-bottom: 10px; position: relative;">
+              <input type="text" [(ngModel)]="memberSearchQuery"
+                placeholder="🔍 Search pilgrims by name, phone or ID..."
+                style="font-size: 12px; padding: 7px 28px 7px 12px; border-radius: 6px; width: 100%; background: var(--bg-secondary); border: 1px solid var(--border-color);" />
+              <button *ngIf="memberSearchQuery" (click)="memberSearchQuery = ''"
+                style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; font-size: 12px; color: var(--text-muted); cursor: pointer; padding: 0 4px;"
+                title="Clear search">✕</button>
+            </div>
+
+            <!-- Pilgrim Loop -->
+            <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 6px; font-style: italic;">💡 Tip: You
+              can drag a pilgrim from the list and drop them onto a bed slot.</div>
+            <div
+              style="display: flex; flex-direction: column; gap: 6px; max-height: 250px; overflow-y: auto; padding-right: 2px;">
+              <div *ngFor="let y of filteredUnassignedYatris" (click)="toggleYatriSelection(y.id)" draggable="true"
+                (dragstart)="onDragStart($event, y.id)"
+                [style.background]="selectedYatriIds.includes(y.id) ? 'rgba(99,102,241,0.05)' : 'var(--bg-secondary)'"
+                [style.border-color]="selectedYatriIds.includes(y.id) ? 'var(--primary)' : 'var(--border-color)'"
+                style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; border: 1.5px solid; cursor: pointer; transition: var(--transition); position: relative;">
+
+                <span style="position: absolute; right: 8px; font-size: 14px; opacity: 0.4;"
+                  title="Drag to allocate">⋮⋮</span>
+
+                <input type="checkbox" [checked]="selectedYatriIds.includes(y.id)"
+                  (click)="$event.stopPropagation(); toggleYatriSelection(y.id)"
+                  style="width: 14px; height: 14px; flex-shrink: 0;" />
+
+                <div style="flex: 1; min-width: 0; font-size: 12px;">
+                  <div
+                    style="font-weight: 700; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                    {{ y.name }}</div>
+                  <div style="font-size: 10px; color: var(--text-muted); margin-top: 1px;">ID: {{ y.id }} · {{ y.gender
+                    }} ({{ y.age }} yrs)</div>
+                </div>
+              </div>
+
+              <div *ngIf="filteredUnassignedYatris.length === 0"
+                style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 24px;">
+                No unallocated pilgrims found.
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ══ TAB 2: ASHRAM MASTER SETUP ══ -->
+    <div *ngIf="activeTab === 'master'" class="animated-fade-in"
+      style="display: grid; grid-template-columns: 1fr 2.3fr; gap: 24px; align-items: start;">
+
+      <!-- LEFT PANEL: Ashram List -->
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <button class="btn btn-primary" style="width: 100%; border-radius: 8px;" (click)="startAddHotel()">
+          ➕ Add New Ashram
+        </button>
+
+        <div style="position: relative;">
+          <input type="text" [(ngModel)]="hotelSearchQuery" placeholder="🔍 Search ashram by name or city..."
+            style="font-size: 13px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color);" />
+        </div>
+
+        <!-- Hotel card items -->
+        <div
+          style="display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow-y: auto; padding-right: 4px;">
+          <div *ngFor="let h of filteredConfigHotels" (click)="selectHotelForConfig(h)"
+            [style.border-color]="selectedHotelForConfig?.id === h.id ? 'var(--primary)' : 'var(--border-color)'"
+            [style.box-shadow]="selectedHotelForConfig?.id === h.id ? '0 0 12px rgba(99,102,241,0.12)' : 'none'"
+            [style.background]="selectedHotelForConfig?.id === h.id ? 'rgba(99,102,241,0.03)' : 'var(--bg-secondary)'"
+            class="glass-panel"
+            style="padding: 14px 16px; cursor: pointer; transition: var(--transition); position: relative; overflow: hidden;">
+            <div *ngIf="selectedHotelForConfig?.id === h.id"
+              style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--primary);"></div>
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+              <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary);">{{ h.name }}</h4>
+              <span class="badge badge-info" style="font-size: 10px; padding: 1px 6px;">★ {{ h.rating }}</span>
+            </div>
+            <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px;">📍 {{ h.city }}</p>
+            <div
+              style="font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 6px; display: flex; justify-content: space-between;">
+              <span>{{ getRoomCount(h.id) }} Rooms</span>
+              <span>📞 {{ h.phone || 'N/A' }}</span>
+            </div>
+          </div>
+          <div *ngIf="filteredConfigHotels.length === 0"
+            style="text-align: center; color: var(--text-muted); font-style: italic; font-size: 13px; padding: 20px;">
+            No ashrams found.
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL: Setup Form or Selected Details -->
+      <div class="glass-panel" style="padding: 24px; min-height: 500px; background: var(--bg-secondary);">
+
+        <!-- EMPTY STATE -->
+        <div *ngIf="hotelConfigMode === 'view' && !selectedHotelForConfig"
+          style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; height: 400px; color: var(--text-muted); gap: 14px;">
+          <span style="font-size: 48px;">🏢</span>
+          <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Ashram Master Configuration</h3>
+          <p style="font-size: 13px; max-width: 320px; line-height: 1.5;">
+            Select an ashram from the left list to edit details and manage rooms, or click <strong>"Add New
+              Ashram"</strong> to create a new one.
+          </p>
+        </div>
+
+        <!-- ADD OR EDIT HOTEL FORM -->
+        <div *ngIf="hotelConfigMode === 'add' || hotelConfigMode === 'edit'" class="animated-fade-in">
+          <h3
+            style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+            {{ hotelConfigMode === 'add' ? '🏢 Add New Ashram Master' : '✏️ Edit Ashram Details' }}
+          </h3>
+
+          <form (submit)="saveHotel()" style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
+              <div>
+                <label>Ashram/Hotel ID <span style="color: var(--danger);">*</span></label>
+                <input type="text" [(ngModel)]="newHotel.id" name="id" [disabled]="hotelConfigMode === 'edit'"
+                  required />
+              </div>
+              <div>
+                <label>Ashram / Hotel Name <span style="color: var(--danger);">*</span></label>
+                <input type="text" [(ngModel)]="newHotel.name" name="name" required
+                  placeholder="e.g. Kedarnath Ashram" />
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px;">
+              <div>
+                <label>Address Details</label>
+                <input type="text" [(ngModel)]="newHotel.address" name="address"
+                  placeholder="e.g. Near Temple main gate" />
+              </div>
+              <div>
+                <label>City <span style="color: var(--danger);">*</span></label>
+                <input type="text" [(ngModel)]="newHotel.city" name="city" required />
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div>
+                <label>Manager Name</label>
+                <input type="text" [(ngModel)]="newHotel.managerName" name="managerName" />
+              </div>
+              <div>
+                <label>Phone / Contact No.</label>
+                <input type="text" [(ngModel)]="newHotel.phone" name="phone" />
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 16px;">
+              <div>
+                <label>Email Address</label>
+                <input type="email" [(ngModel)]="newHotel.email" name="email" />
+              </div>
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <label>Rating / Category</label>
+                  <button type="button" (click)="openQuickConfig('HotelCategory')"
+                          style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 11px; font-weight: 700; padding: 0;">
+                    ➕ Add New
+                  </button>
+                </div>
+                <select [(ngModel)]="newHotel.rating" (ngModelChange)="onRatingCategoryChange($event)" name="rating">
+                  <option *ngFor="let c of hotelCategories" [value]="c.name">{{ c.name }}</option>
+                </select>
+              </div>
+              <div>
+                <label>GST Number</label>
+                <input type="text" [(ngModel)]="newHotel.gstNo" name="gstNo" />
+              </div>
+            </div>
+
+            <div
+              style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+              <button type="button" class="btn btn-outline"
+                (click)="selectHotelForConfig(selectedHotelForConfig)">Cancel</button>
+              <button type="submit" class="btn btn-primary">
+                {{ hotelConfigMode === 'add' ? '💾 Save Ashram' : '💾 Save Changes' }}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- VIEW HOTEL DETAILS AND ROOMS TABLE -->
+        <div *ngIf="hotelConfigMode === 'view' && selectedHotelForConfig" class="animated-fade-in"
+          style="display: flex; flex-direction: column; gap: 20px;">
+
+          <!-- Header Info -->
+          <div
+            style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary);">{{ selectedHotelForConfig.name
+                }}</h3>
+              <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                📍 {{ selectedHotelForConfig.address || 'N/A' }}, {{ selectedHotelForConfig.city }} &nbsp;·&nbsp; 📞 {{
+                selectedHotelForConfig.phone || 'N/A' }}
+              </p>
+              <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                Category: {{ selectedHotelForConfig.rating }} &nbsp;|&nbsp; Mgr: {{ selectedHotelForConfig.managerName
+                }} &nbsp;|&nbsp; GST: {{ selectedHotelForConfig.gstNo || 'N/A' }}
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-outline"
+                style="border-color: var(--secondary); color: var(--secondary); font-size: 12px; padding: 6px 12px;"
+                (click)="startEditHotel(selectedHotelForConfig)">
+                ✏️ Edit Details
+              </button>
+              <button class="btn btn-outline"
+                style="border-color: var(--danger); color: var(--danger); font-size: 12px; padding: 6px 12px;"
+                (click)="deleteHotel(selectedHotelForConfig)">
+                🗑️ Delete Ashram
+              </button>
+            </div>
+          </div>
+
+          <!-- Rooms Setup Header -->
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary); text-transform: uppercase;">
+              Configured Rooms Setup</h4>
+            <button *ngIf="!showRoomAddPanel" class="btn btn-primary" style="font-size: 12px; padding: 6px 14px;"
+              (click)="startAddRoom()">
+              ➕ Add Room to Ashram
+            </button>
+          </div>
+
+          <!-- ADD/EDIT ROOM INLINE PANEL -->
+          <div *ngIf="showRoomAddPanel" class="glass-panel animated-fade-in"
+            style="padding: 20px; border: 1.5px solid var(--primary); background: var(--bg-tertiary); display: flex; flex-direction: column; gap: 14px;">
+
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid var(--border-color); padding-bottom: 10px;">
+              <h5 style="font-size: 14px; font-weight: 800; color: var(--primary); margin: 0;">
+                {{ editingRoom ? '✏️ Edit Room #' + editingRoom.roomNumber : '🚪 Add Room Setup' }}
+              </h5>
+
+              <!-- Mode Switcher (only visible in Add mode, hidden when editing) -->
+              <div *ngIf="!editingRoom"
+                style="display: flex; gap: 6px; background: var(--bg-secondary); padding: 3px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <button type="button" class="btn" [class.btn-primary]="roomAddMode === 'single'"
+                  [style.padding]="'4px 10px'" [style.fontSize]="'11px'" (click)="roomAddMode = 'single'">
+                  Single Add
+                </button>
+                <button type="button" class="btn" [class.btn-primary]="roomAddMode === 'bulk'"
+                  [style.padding]="'4px 10px'" [style.fontSize]="'11px'" (click)="roomAddMode = 'bulk'">
+                  Bulk Add (Multiple)
+                </button>
+              </div>
+            </div>
+
+            <!-- ── SINGLE ADD VIEW ── -->
+            <div *ngIf="roomAddMode === 'single' || editingRoom"
+              style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                <div>
+                  <label style="font-size: 11px; font-weight: 600;">Room Number <span
+                      style="color: var(--danger);">*</span></label>
+                  <input type="text" [(ngModel)]="activeRoom.roomNumber" placeholder="e.g. 101"
+                    style="padding: 7px 10px; font-size: 12px;" />
+                </div>
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-size: 11px; font-weight: 600;">Room Type</label>
+                    <button type="button" (click)="openQuickConfig('RoomType')"
+                            style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 10px; font-weight: 700; padding: 0;">
+                      ➕ Add
+                    </button>
+                  </div>
+                  <select [(ngModel)]="activeRoom.type" (ngModelChange)="onRoomTypeChange($event, activeRoom)" style="padding: 7px 10px; font-size: 12px;">
+                    <option *ngFor="let t of roomTypes" [value]="t.name">{{ t.name }}</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size: 11px; font-weight: 600;">Bed Capacity <span
+                      style="color: var(--danger);">*</span></label>
+                  <input type="number" [(ngModel)]="activeRoom.capacity" min="1" max="100"
+                    style="padding: 7px 10px; font-size: 12px;" />
+                </div>
+                <div>
+                  <label style="font-size: 11px; font-weight: 600;">Floor</label>
+                  <input type="number" [(ngModel)]="activeRoom.floor" min="0" max="20"
+                    style="padding: 7px 10px; font-size: 12px;" />
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+                <div>
+                  <label style="font-size: 11px; font-weight: 600;">Building/Block Name</label>
+                  <input type="text" [(ngModel)]="activeRoom.buildingName" placeholder="e.g. Block-A"
+                    style="padding: 7px 10px; font-size: 12px;" />
+                </div>
+                <div style="display: flex; align-items: flex-end; gap: 8px;">
+                  <button type="button" class="btn btn-outline" style="font-size: 11px; padding: 8px 12px; flex: 1;"
+                    (click)="showRoomAddPanel = false">Cancel</button>
+                  <button type="button" class="btn btn-primary" style="font-size: 11px; padding: 8px 12px; flex: 1;"
+                    (click)="saveRoom()">Save</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── BULK ADD VIEW ── -->
+            <div *ngIf="roomAddMode === 'bulk' && !editingRoom"
+              style="display: flex; flex-direction: column; gap: 12px;">
+              <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">Add multiple room rows below. Specify
+                different capacities or building tags as needed.</p>
+
+              <div
+                style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 4px;">
+                <div *ngFor="let rm of bulkRooms; let idx = index"
+                  style="display: grid; grid-template-columns: 1.5fr 1.5fr 1fr 1fr 1.5fr 0.5fr; gap: 10px; align-items: center; background: var(--bg-secondary); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+
+                  <div>
+                    <label *ngIf="idx === 0" style="font-size: 10px; display: block; margin-bottom: 2px;">Room
+                      Number</label>
+                    <input type="text" [(ngModel)]="rm.roomNumber" placeholder="Room #"
+                      style="padding: 6px 10px; font-size: 12px;" />
+                  </div>
+
+                  <div>
+                    <label *ngIf="idx === 0" style="font-size: 10px; display: block; margin-bottom: 2px;">Type</label>
+                    <select [(ngModel)]="rm.type" (ngModelChange)="onRoomTypeChange($event, rm)" style="padding: 6px 10px; font-size: 12px;">
+                      <option *ngFor="let t of roomTypes" [value]="t.name">{{ t.name }}</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label *ngIf="idx === 0" style="font-size: 10px; display: block; margin-bottom: 2px;">Beds</label>
+                    <input type="number" [(ngModel)]="rm.capacity" min="1" max="100"
+                      style="padding: 6px 10px; font-size: 12px;" />
+                  </div>
+
+                  <div>
+                    <label *ngIf="idx === 0" style="font-size: 10px; display: block; margin-bottom: 2px;">Floor</label>
+                    <input type="number" [(ngModel)]="rm.floor" min="0" max="20"
+                      style="padding: 6px 10px; font-size: 12px;" />
+                  </div>
+
+                  <div>
+                    <label *ngIf="idx === 0"
+                      style="font-size: 10px; display: block; margin-bottom: 2px;">Building/Block</label>
+                    <input type="text" [(ngModel)]="rm.buildingName" placeholder="Block name"
+                      style="padding: 6px 10px; font-size: 12px;" />
+                  </div>
+
+                  <div style="text-align: center;">
+                    <label *ngIf="idx === 0"
+                      style="font-size: 10px; display: block; margin-bottom: 2px; visibility: hidden;">Remove</label>
+                    <button type="button" class="btn btn-outline"
+                      style="border-color: var(--danger); color: var(--danger); padding: 5px 8px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center;"
+                      [disabled]="bulkRooms.length <= 1" (click)="removeBulkRoomRow(idx)">
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                <button type="button" class="btn btn-outline" style="font-size: 12px; padding: 6px 14px;"
+                  (click)="addBulkRoomRow()">
+                  ➕ Add Another Room Row
+                </button>
+
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" class="btn btn-outline" style="font-size: 12px; padding: 6px 14px;"
+                    (click)="showRoomAddPanel = false">Cancel</button>
+                  <button type="button" class="btn btn-primary" style="font-size: 12px; padding: 6px 14px;"
+                    (click)="saveRoom()">
+                    💾 Save All Rooms ({{ bulkRooms.length }})
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Configured Rooms Table -->
+          <div class="table-container"
+            style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>{{ t('RoomNo') }}</th>
+                  <th>{{ t('Type') }}</th>
+                  <th>{{ t('Capacity') }}</th>
+                  <th>{{ t('Building') }}</th>
+                  <th>{{ t('Floor') }}</th>
+                  <th style="text-align: right;">{{ t('Actions') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let rm of selectedHotelConfigRooms">
+                  <td style="font-weight: 700; color: var(--primary);">{{ rm.roomNumber }}</td>
+                  <td><span class="badge badge-info">{{ rm.type }}</span></td>
+                  <td style="font-weight: 600;">🛏️ {{ rm.capacity }} beds</td>
+                  <td>{{ rm.buildingName }}</td>
+                  <td>Floor {{ rm.floor }}</td>
+                  <td style="text-align: right; display: flex; justify-content: flex-end; gap: 6px;">
+                    <button class="btn btn-outline"
+                      style="padding: 4px 8px; font-size: 11px; border-color: var(--secondary); color: var(--secondary);"
+                      (click)="startEditRoom(rm)">
+                      ✏️ Edit
+                    </button>
+                    <button class="btn btn-outline"
+                      style="padding: 4px 8px; font-size: 11px; border-color: var(--danger); color: var(--danger);"
+                      (click)="deleteRoom(rm)">
+                      🗑️ Delete
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="selectedHotelConfigRooms.length === 0">
+                  <td colspan="6"
+                    style="text-align: center; color: var(--text-muted); font-style: italic; padding: 24px;">
+                    No rooms configured for this Ashram. Click "Add Room to Ashram" above to start configuring rooms.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </ng-container>
+</div>
+
+<!-- ══ ADD HOTEL MODAL ══ -->
+<div *ngIf="showHotelModal"
+  style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+  <div class="glass-panel" style="width: 100%; max-width: 600px; padding: 28px; background: var(--bg-secondary);">
+    <div
+      style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+      <h2 style="font-size: 20px; font-weight: 700;">Add Ashram / Hotel</h2>
+      <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showHotelModal = false">✕</button>
+    </div>
+    <form (submit)="createHotel()" style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
+        <div><label>Hotel ID</label><input type="text" [(ngModel)]="newHotel.id" name="id" required /></div>
+        <div><label>Ashram / Hotel Name</label><input type="text" [(ngModel)]="newHotel.name" name="name" required
+            placeholder="e.g. Kedarnath Ashram" /></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px;">
+        <div><label>Address</label><input type="text" [(ngModel)]="newHotel.address" name="address" required /></div>
+        <div><label>City</label><input type="text" [(ngModel)]="newHotel.city" name="city" required /></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div><label>Manager Name</label><input type="text" [(ngModel)]="newHotel.managerName" name="managerName"
+            required /></div>
+        <div><label>Phone</label><input type="text" [(ngModel)]="newHotel.phone" name="phone" required /></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 16px;">
+        <div><label>Email</label><input type="email" [(ngModel)]="newHotel.email" name="email" /></div>
+        <div><label>Rating</label><input type="number" [(ngModel)]="newHotel.rating" name="rating" min="1" max="5"
+            step="0.1" /></div>
+        <div><label>GST No.</label><input type="text" [(ngModel)]="newHotel.gstNo" name="gstNo" /></div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px;">
+        <button type="button" class="btn btn-outline" (click)="showHotelModal = false">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create Ashram</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ ADD ROOM MODAL ══ -->
+<div *ngIf="showRoomModal"
+  style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+  <div class="glass-panel" style="width: 100%; max-width: 500px; padding: 28px; background: var(--bg-secondary);">
+    <div
+      style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+      <h2 style="font-size: 20px; font-weight: 700;">Add Room — {{ selectedHotel?.name }}</h2>
+      <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showRoomModal = false">✕</button>
+    </div>
+    <form (submit)="createRoom()" style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div><label>Room ID</label><input type="text" [(ngModel)]="newRoom.id" name="id" required /></div>
+        <div><label>Room Number</label><input type="text" [(ngModel)]="newRoom.roomNumber" name="roomNumber" required
+            placeholder="e.g. 101" /></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div>
+          <label>Room Type</label>
+          <select [(ngModel)]="newRoom.type" name="type">
+            <option value="Standard">Standard</option>
+            <option value="Deluxe">Deluxe</option>
+            <option value="Dormitory">Dormitory</option>
+          </select>
+        </div>
+        <div><label>Bed Capacity</label><input type="number" [(ngModel)]="newRoom.capacity" name="capacity" min="1"
+            max="50" required /></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px;">
+        <div><label>Building Name</label><input type="text" [(ngModel)]="newRoom.buildingName" name="buildingName"
+            placeholder="e.g. Main Block" /></div>
+        <div><label>Floor</label><input type="number" [(ngModel)]="newRoom.floor" name="floor" min="0" max="20" /></div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px;">
+        <button type="button" class="btn btn-outline" (click)="showRoomModal = false">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create Room</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ QUICK ADD CATEGORY / ROOM TYPE MODAL ══ -->
+<div class="modal-overlay" *ngIf="showQuickConfigModal" (click)="closeQuickConfig()">
+  <div class="modal-box" style="max-width: 440px; padding: 24px;" (click)="$event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 style="font-size: 16px; font-weight: 800; margin: 0; color: var(--text-primary);">
+        ➕ Add New {{ configModalType === 'HotelCategory' ? 'Ashram Category' : 'Room Type' }}
+      </h3>
+      <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" (click)="closeQuickConfig()">✕</button>
+    </div>
+
+    <div *ngIf="configError" style="color: #ef4444; font-size: 12px; margin-bottom: 12px; font-weight: 600;">
+      ⚠️ {{ configError }}
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div>
+        <label class="form-label" style="font-size: 11px; font-weight: 700;">
+          {{ configModalType === 'HotelCategory' ? 'Category Name' : 'Room Type Name' }} *
+        </label>
+        <input class="form-control" type="text" [(ngModel)]="newConfigName"
+               [placeholder]="configModalType === 'HotelCategory' ? 'e.g. VVIP Guest House' : 'e.g. AC Suite'" />
+      </div>
+
+      <div>
+        <label class="form-label" style="font-size: 11px; font-weight: 700;">Description (Optional)</label>
+        <input class="form-control" type="text" [(ngModel)]="newConfigDesc" placeholder="e.g. Executive room stay" />
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+        <button class="btn btn-outline btn-sm" (click)="closeQuickConfig()" [disabled]="configSaving">Cancel</button>
+        <button class="btn btn-primary btn-sm" (click)="saveQuickConfig()" [disabled]="configSaving">
+          <span *ngIf="!configSaving">💾 Save Option</span>
+          <span *ngIf="configSaving">Saving...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

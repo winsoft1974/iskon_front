@@ -1,0 +1,440 @@
+<div class="animated-fade-in" style="display: flex; flex-direction: column; gap: 20px;">
+
+  <!-- ── Summary Cards Row (4 Cards) ── -->
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+    <!-- Card 1: Total Income (KasAuthority + ServiceIncharge only) -->
+    <div *ngIf="ops.canViewFinance" class="glass-panel" style="padding: 18px; border-left: 4px solid var(--secondary);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary); margin-bottom: 4px;">🟢 {{ ops.t('TotalIncome') }}</p>
+          <h2 style="font-size: 22px; font-weight: 800; color: var(--secondary);">+₹{{ ops.totalCombinedIncome | number }}</h2>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">{{ ops.filteredIncomes.length + ops.filteredYatriPayments.length }} entries (Deposits & Fees)</p>
+        </div>
+        <span style="font-size: 24px;">📥</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Operational Expenses -->
+    <div class="glass-panel" style="padding: 18px; border-left: 4px solid var(--danger);"
+         [style.grid-column]="!ops.canViewFinance ? 'span 4' : 'auto'">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--danger); margin-bottom: 4px;">
+            🔴 {{ ops.isVolunteer ? (ops.userDepartment + ' Dept Expense') : ops.t('TotalExpense') }}
+          </p>
+          <h2 style="font-size: 22px; font-weight: 800; color: var(--danger);">−₹{{ ops.totalOperationalExpense | number }}</h2>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">{{ ops.isVolunteer ? (ops.userDepartment + ' Department Expenses') : 'Food, Transport, Hotels etc.' }}</p>
+        </div>
+        <span style="font-size: 24px;">📤</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Advance Transfers (KasAuthority + ServiceIncharge only) -->
+    <div *ngIf="ops.canViewFinance" class="glass-panel" style="padding: 18px; border-left: 4px solid var(--primary);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); margin-bottom: 4px;">🔵 {{ ops.t('Transfers') }}</p>
+          <h2 style="font-size: 22px; font-weight: 800; color: var(--primary);">⇄ ₹{{ ops.totalAdvanceTransfers | number }}</h2>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Volunteers Advance Money</p>
+        </div>
+        <span style="font-size: 24px;">💸</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Net Balance (KasAuthority + ServiceIncharge only) -->
+    <div *ngIf="ops.canViewFinance" class="glass-panel" style="padding: 18px;"
+         [style.border-left]="ops.netProfit >= 0 ? '4px solid #10B981' : '4px solid var(--danger)'">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;"
+             [style.color]="ops.netProfit >= 0 ? '#10B981' : 'var(--danger)'">💰 {{ ops.t('NetBalance') }}</p>
+          <h2 style="font-size: 22px; font-weight: 800;"
+              [style.color]="ops.netProfit >= 0 ? '#10B981' : 'var(--danger)'">
+            {{ ops.netProfit >= 0 ? '+' : '' }}₹{{ ops.netProfit | number }}
+          </h2>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+            Income − Expenses (Balance: ₹{{ ops.netFinanceBalance | number }})
+          </p>
+        </div>
+        <span style="font-size: 24px;">{{ ops.netProfit >= 0 ? '💹' : '📉' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Single Unified Finance Ledger Panel ── -->
+  <div class="glass-panel" style="padding: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+          <span>📊</span> {{ ops.isVolunteer ? (ops.userDepartment + ' Department Expense Ledger') : 'Integrated Finance Ledger' }}
+        </h3>
+      </div>
+
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+        <!-- Search Bar -->
+        <div style="position: relative; display: flex; align-items: center; min-width: 240px;">
+          <input type="text" 
+                 [(ngModel)]="ops.financeSearchQuery" 
+                 name="financeSearch" 
+                 placeholder="🔍 Search Party, Category, Remarks..." 
+                 style="font-size: 13px; padding: 8px 30px 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; outline: none; transition: var(--transition); background: var(--bg-secondary);" />
+          <button *ngIf="ops.financeSearchQuery" 
+                  (click)="ops.financeSearchQuery = ''" 
+                  type="button" 
+                  style="position: absolute; right: 8px; background: transparent; border: none; font-size: 13px; cursor: pointer; color: var(--text-muted); padding: 4px;">
+            ✕
+          </button>
+        </div>
+
+        <!-- Department Category Dropdown -->
+        <div style="display: flex; align-items: center;">
+          <select [(ngModel)]="ops.financeCategoryFilter" 
+                  name="financeCategory" 
+                  style="font-size: 13px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; cursor: pointer; font-weight: 600;">
+            <option value="All">🏢 All Departments / Categories</option>
+            <option *ngFor="let cat of ops.departmentCategoryList" [value]="cat">
+              📂 {{ cat }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Filter Pills (KasAuthority & ServiceIncharge only) -->
+        <div *ngIf="ops.canViewFinance" style="display: flex; background: rgba(0,0,0,0.05); padding: 3px; border-radius: 8px; border: 1px solid var(--border-color); gap: 4px;">
+          <button type="button" (click)="ops.financeFilter = 'All'"
+                  [style.background]="ops.financeFilter === 'All' ? 'var(--primary)' : 'transparent'"
+                  [style.color]="ops.financeFilter === 'All' ? '#fff' : 'var(--text-secondary)'"
+                  style="border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+            All
+          </button>
+          <button type="button" (click)="ops.financeFilter = 'Income'"
+                  [style.background]="ops.financeFilter === 'Income' ? 'var(--secondary)' : 'transparent'"
+                  [style.color]="ops.financeFilter === 'Income' ? '#fff' : 'var(--text-secondary)'"
+                  style="border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+            🟢 Income
+          </button>
+          <button type="button" (click)="ops.financeFilter = 'Expense'"
+                  [style.background]="ops.financeFilter === 'Expense' ? 'var(--danger)' : 'transparent'"
+                  [style.color]="ops.financeFilter === 'Expense' ? '#fff' : 'var(--text-secondary)'"
+                  style="border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+            🔴 Expense
+          </button>
+          <button type="button" (click)="ops.financeFilter = 'Transfer'"
+                  [style.background]="ops.financeFilter === 'Transfer' ? '#3B82F6' : 'transparent'"
+                  [style.color]="ops.financeFilter === 'Transfer' ? '#fff' : 'var(--text-secondary)'"
+                  style="border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+            🔵 Transfer
+          </button>
+        </div>
+
+        <!-- Column Customization Dropdown Toggle -->
+        <div style="position: relative;">
+          <button class="btn btn-outline" style="font-weight: 700; padding: 9px 14px; font-size: 13px; border-color: var(--primary); color: var(--primary);" 
+                  (click)="ops.showColumnSelector = !ops.showColumnSelector; $event.stopPropagation()">
+            ⚙️ Select Columns
+          </button>
+
+          <!-- Column Selector Dropdown Card -->
+          <div *ngIf="ops.showColumnSelector" (click)="$event.stopPropagation()"
+               style="position: absolute; right: 0; top: 45px; z-index: 1000; width: 250px; background: var(--bg-secondary); border: 1.5px solid var(--border-color); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.18); padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-primary);">🖨️ Select Print Columns</span>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" (click)="ops.toggleAllPrintColumns(true)" style="font-size: 10px; border: none; background: transparent; color: var(--primary); cursor: pointer; font-weight: 700;">All</button>
+                <span style="font-size: 10px; color: var(--text-muted);">|</span>
+                <button type="button" (click)="ops.toggleAllPrintColumns(false)" style="font-size: 10px; border: none; background: transparent; color: var(--accent-rose); cursor: pointer; font-weight: 700;">Clear</button>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--text-secondary);">
+              <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer;">
+                <input type="checkbox" [(ngModel)]="ops.printColumns.date" style="width: 14px; height: 14px;" /> Date
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer;">
+                <input type="checkbox" [(ngModel)]="ops.printColumns.type" style="width: 14px; height: 14px;" /> Type (Income/Expense/Transfer)
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer;">
+                <input type="checkbox" [(ngModel)]="ops.printColumns.party" style="width: 14px; height: 14px;" /> Party / Recipient Name
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer;">
+                <input type="checkbox" [(ngModel)]="ops.printColumns.category" style="width: 14px; height: 14px;" /> Dept / Category
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer;">
+                <input type="checkbox" [(ngModel)]="ops.printColumns.income" style="width: 14px; height: 14px;" /> Income (₹)
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer;">
+                <input type="checkbox" [(ngModel)]="ops.printColumns.expense" style="width: 14px; height: 14px;" /> Expense (₹)
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer;">
+                <input type="checkbox" [(ngModel)]="ops.printColumns.transfer" style="width: 14px; height: 14px;" /> Advance Transfer (₹)
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer;">
+                <input type="checkbox" [(ngModel)]="ops.printColumns.description" style="width: 14px; height: 14px;" /> Remarks / Note
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer;">
+                <input type="checkbox" [(ngModel)]="ops.printColumns.mode" style="width: 14px; height: 14px;" /> Payment Mode
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Print Ledger Button -->
+        <button class="btn btn-outline" style="font-weight: 700; padding: 9px 16px; font-size: 13px; border-color: var(--primary); color: var(--primary);" 
+                (click)="ops.openFinancePrintModal()">
+          🖨️ Print Ledger
+        </button>
+
+        <!-- Export Excel Button -->
+        <button class="btn btn-outline" style="font-weight: 700; padding: 9px 16px; font-size: 13px; border-color: #10B981; color: #10B981;" (click)="ops.exportFinanceExcel()">
+          📊 Export Excel (.xlsx)
+        </button>
+        <!-- Single Add Transaction Button -->
+        <button class="btn btn-primary" 
+                [disabled]="ops.isEntryLocked"
+                [style.opacity]="ops.isEntryLocked ? '0.5' : '1'"
+                [style.cursor]="ops.isEntryLocked ? 'not-allowed' : 'pointer'"
+                style="font-weight: 700; padding: 9px 18px; font-size: 13px;" 
+                (click)="ops.openUnifiedFinanceModal(ops.canViewFinance ? 'Income' : 'Expense')">
+          ➕ {{ ops.canViewFinance ? 'Add Transaction' : 'Add Expense' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="ops.combinedFinanceLedger.length === 0" style="text-align: center; padding: 48px; color: var(--text-muted);">
+      <div style="font-size: 48px; margin-bottom: 10px;">🧾</div>
+      <p style="font-size: 14px; font-style: italic;">No transactions recorded.</p>
+      <button class="btn btn-primary" 
+              [disabled]="ops.isEntryLocked"
+              [style.opacity]="ops.isEntryLocked ? '0.5' : '1'"
+              [style.cursor]="ops.isEntryLocked ? 'not-allowed' : 'pointer'"
+              style="margin-top: 14px; font-size: 13px;" 
+              (click)="ops.openUnifiedFinanceModal(ops.canViewFinance ? 'Income' : 'Expense')">
+        + Add First Transaction
+      </button>
+    </div>
+
+    <!-- Single Combined Table -->
+    <div class="table-container table-scrollbar" *ngIf="ops.combinedFinanceLedger.length > 0">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th style="text-align: center; width: 80px;">Action</th>
+            <th>Date</th>
+            <th style="text-align: center;">Type</th>
+            <th>Party / Recipient</th>
+            <th>Dept / Category</th>
+            <th *ngIf="ops.canViewFinance" style="text-align: right; color: var(--secondary);">Income</th>
+            <th style="text-align: right; color: var(--danger);">Expense</th>
+            <th *ngIf="ops.canViewFinance" style="text-align: right; color: #3B82F6;">Transfer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of ops.combinedFinanceLedger"
+              (click)="ops.openVoucherModal(item)"
+              style="cursor: pointer; transition: background-color 0.2s;"
+              onmouseover="this.style.background='rgba(99,102,241,0.03)'"
+              onmouseout="this.style.background='transparent'">
+            <td style="text-align: center;" (click)="$event.stopPropagation()">
+              <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                <!-- WhatsApp Thank You Button (for Income, hidden from Volunteer) -->
+                <button *ngIf="item.kind === 'Income' && ops.canViewFinance" type="button" class="btn btn-outline" 
+                        style="font-size: 11px; padding: 4px 6px; border-color: #25D366; color: #25D366; display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 26px;"
+                        (click)="ops.openThankYouModal(item); $event.stopPropagation()" title="Send WhatsApp Thank You Receipt">
+                  💬
+                </button>
+                <!-- Edit Button (hidden from Volunteer) -->
+                <button *ngIf="ops.canEditExpense" type="button" class="btn btn-outline" 
+                        [disabled]="ops.isEntryLocked"
+                        [style.opacity]="ops.isEntryLocked ? '0.5' : '1'"
+                        style="font-size: 11px; padding: 4px 6px; border-color: var(--primary); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 26px;"
+                        (click)="ops.openEditUnifiedFinanceModal(item, $event)" title="Edit Transaction">
+                  ✏️
+                </button>
+                <!-- Delete Button (hidden from Volunteer) -->
+                <button *ngIf="ops.canEditExpense" type="button" class="btn btn-outline" 
+                        [disabled]="ops.isEntryLocked"
+                        [style.opacity]="ops.isEntryLocked ? '0.5' : '1'"
+                        style="font-size: 11px; padding: 4px 6px; border-color: var(--danger); color: var(--danger); display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 26px;"
+                        (click)="ops.deleteUnifiedTransaction(item, $event)" title="Delete Transaction">
+                  🗑️
+                </button>
+              </div>
+            </td>
+            <td style="font-size: 13px; font-weight: 500; color: var(--text-secondary);">
+              {{ item.date || '—' }}
+            </td>
+            <td style="text-align: center;">
+              <span class="badge" 
+                    [style.background]="item.kind === 'Income' ? 'rgba(16,185,129,0.12)' : (item.kind === 'Transfer' ? 'rgba(59,130,246,0.12)' : 'rgba(239,68,68,0.12)')"
+                    [style.color]="item.kind === 'Income' ? 'var(--secondary)' : (item.kind === 'Transfer' ? '#2563EB' : 'var(--danger)')"
+                    style="font-size: 11px; padding: 4px 10px; font-weight: 700;">
+                {{ item.kind === 'Income' ? '🟢 Income' : (item.kind === 'Transfer' ? '🔵 Advance Transfer' : '🔴 Expense') }}
+              </span>
+            </td>
+            <td style="font-weight: 700; color: var(--text-primary);">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span>{{ item.party }}</span>
+                <button *ngIf="item.receiptUrl || item.raw?.receiptUrl" type="button" class="btn btn-outline" 
+                        style="padding: 2px 6px; font-size: 10px; border-color: #6366f1; color: #6366f1; font-weight: 700; border-radius: 6px;"
+                        (click)="ops.openReceiptLightbox(item.receiptUrl || item.raw?.receiptUrl); $event.stopPropagation()" title="View Attached Receipt Photo">
+                  📷 View Bill
+                </button>
+              </div>
+            </td>
+            <td>
+              <span class="badge" style="background: rgba(99,102,241,0.08); color: var(--primary); font-size: 11px; font-weight: 600;">
+                {{ item.category || item.department || '—' }}
+              </span>
+            </td>
+            <!-- Income Column -->
+            <td *ngIf="ops.canViewFinance" style="text-align: right; font-weight: 800; font-size: 14px; color: var(--secondary);">
+              <span *ngIf="item.kind === 'Income'">+₹{{ item.amount | number }}</span>
+              <span *ngIf="item.kind !== 'Income'" style="color: var(--text-muted); font-weight: 400; font-size: 12px;">—</span>
+            </td>
+            <!-- Expense Column -->
+            <td style="text-align: right; font-weight: 800; font-size: 14px; color: var(--danger);">
+              <span *ngIf="item.kind === 'Expense'">−₹{{ item.amount | number }}</span>
+              <span *ngIf="item.kind !== 'Expense'" style="color: var(--text-muted); font-weight: 400; font-size: 12px;">—</span>
+            </td>
+            <!-- Transfer Column -->
+            <td *ngIf="ops.canViewFinance" style="text-align: right; font-weight: 800; font-size: 14px; color: #2563EB;">
+              <span *ngIf="item.kind === 'Transfer'">⇄ ₹{{ item.amount | number }}</span>
+              <span *ngIf="item.kind !== 'Transfer'" style="color: var(--text-muted); font-weight: 400; font-size: 12px;">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VOLUNTEER ADVANCE LEDGER (part of Finance tab) ══ -->
+<div *ngIf="ops.canViewFinance" class="animated-fade-in" style="margin-top: 20px;">
+  <div class="glass-panel" style="padding: 20px;">
+
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+      <div>
+        <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">👛 Volunteer Advance Ledger</h3>
+        <p style="font-size: 12px; color: var(--text-muted);">Advance given · Expenses used · Balance remaining · Transfers tracked</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button *ngIf="ops.canViewFinance" class="btn btn-outline" style="font-size: 12px; padding: 7px 12px; border-color: var(--primary); color: var(--primary);" (click)="ops.openTransferModal()">⇄ Transfer</button>
+      </div>
+    </div>
+
+    <!-- Summary strip -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+
+      <!-- Card 1: Total Advance Given -->
+      <div style="background: rgba(99,102,241,0.06); border-radius: 8px; padding: 12px; border-left: 3px solid var(--primary);">
+        <p style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--primary); margin-bottom: 4px;">💰 Total Advance Given</p>
+        <p style="font-size: 20px; font-weight: 800; color: var(--primary);">₹{{ ops.totalAdvancesGiven | number }}</p>
+      </div>
+
+      <!-- Card 2: Volunteer Expenses from Advance -->
+      <div style="background: rgba(239,68,68,0.06); border-radius: 8px; padding: 12px; border-left: 3px solid var(--danger);">
+        <p style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--danger); margin-bottom: 4px;">📤 Expenses Used</p>
+        <p style="font-size: 20px; font-weight: 800; color: var(--danger);">− ₹{{ ops.totalVolunteerExpenses | number }}</p>
+      </div>
+
+      <!-- Card 3: Net Balance Remaining = Advance - Expenses -->
+      <div style="border-radius: 8px; padding: 12px;"
+           [style.background]="ops.totalAdvanceBalance >= 0 ? 'rgba(16,185,129,0.09)' : 'rgba(239,68,68,0.09)'"
+           [style.border-left]="ops.totalAdvanceBalance >= 0 ? '3px solid var(--secondary)' : '3px solid var(--danger)'">
+        <p style="font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;"
+           [style.color]="ops.totalAdvanceBalance >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+          🏦 Net Balance Remaining
+        </p>
+        <p style="font-size: 20px; font-weight: 800;"
+           [style.color]="ops.totalAdvanceBalance >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+          {{ ops.totalAdvanceBalance >= 0 ? '' : '−' }}₹{{ (ops.totalAdvanceBalance < 0 ? -ops.totalAdvanceBalance : ops.totalAdvanceBalance) | number }}
+        </p>
+        <p style="font-size: 10px; margin-top: 2px;"
+           [style.color]="ops.totalAdvanceBalance >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+          {{ ops.totalAdvanceBalance >= 0 ? '✅ Balance Remaining' : '⚠️ Over-spent!' }}
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Volunteer Advance Cards -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div *ngFor="let vol of ops.volunteers"
+           style="border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px; background: var(--bg-secondary);">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+
+          <!-- Volunteer info -->
+          <div style="flex: 1; min-width: 160px; cursor: pointer;" (click)="ops.openVolunteerExpensesModal(vol.id)" title="View itemwise ledger">
+            <div style="font-size: 14px; font-weight: 700; color: var(--primary); text-decoration: underline; display: flex; align-items: center; gap: 4px;">
+              <span>👤</span> {{ vol.name }}
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted);">{{ vol.assignedDepartment }} · 🔍 Click to view ledger</div>
+          </div>
+
+          <!-- Advance given -->
+          <div style="text-align: center; min-width: 90px;">
+            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Advance</div>
+            <div style="font-size: 15px; font-weight: 800; color: var(--primary);">₹{{ (ops.volunteerAdvances[vol.id] || 0) | number }}</div>
+          </div>
+
+          <!-- Transfers -->
+          <div *ngIf="ops.getVolunteerTransferBalance(vol.id) !== 0" style="text-align: center; min-width: 90px;">
+            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Transfer</div>
+            <div style="font-size: 14px; font-weight: 700;"
+                 [style.color]="ops.getVolunteerTransferBalance(vol.id) >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+              {{ ops.getVolunteerTransferBalance(vol.id) >= 0 ? '+' : '' }}₹{{ ops.getVolunteerTransferBalance(vol.id) | number }}
+            </div>
+          </div>
+
+          <!-- Expenses used -->
+          <div style="text-align: center; min-width: 90px;">
+            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Spent</div>
+            <div style="font-size: 15px; font-weight: 800; color: var(--danger);">₹{{ ops.getVolunteerExpenses(vol.id) | number }}</div>
+          </div>
+
+          <!-- Balance -->
+          <div style="text-align: center; min-width: 90px; padding: 6px 12px; border-radius: 8px;"
+               [style.background]="ops.getVolunteerBalance(vol.id) >= 0 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'">
+            <div style="font-size: 10px; text-transform: uppercase; font-weight: 700;"
+                 [style.color]="ops.getVolunteerBalance(vol.id) >= 0 ? 'var(--secondary)' : 'var(--danger)'">Balance</div>
+            <div style="font-size: 16px; font-weight: 800;"
+                 [style.color]="ops.getVolunteerBalance(vol.id) >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+              ₹{{ ops.getVolunteerBalance(vol.id) | number }}
+            </div>
+          </div>
+
+          <!-- Give/Edit Advance button -->
+          <button type="button" class="btn btn-outline"
+                  style="font-size: 11px; padding: 6px 12px; border-color: var(--primary); color: var(--primary); white-space: nowrap;"
+                  (click)="ops.openAdvanceModal(vol)">
+            {{ ops.volunteerAdvances[vol.id] ? '✏️ Edit Advance' : '💰 Give Advance' }}
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="ops.volunteers.length === 0" style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 24px; font-style: italic;">
+        No volunteers registered yet. Add volunteers first.
+      </div>
+    </div>
+
+    <!-- Transfer History -->
+    <div *ngIf="ops.volunteerTransfers.length > 0" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+      <h4 style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px;">⇄ Transfer History</h4>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div *ngFor="let tr of ops.volunteerTransfers"
+             style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg-tertiary); border-radius: 8px; font-size: 12px; border-left: 3px solid var(--primary);">
+          <span style="font-weight: 700; color: var(--danger);">{{ ops.getVolunteerName(tr.fromId) }}</span>
+          <span style="color: var(--text-muted);">→</span>
+          <span style="font-weight: 700; color: var(--secondary);">{{ ops.getVolunteerName(tr.toId) }}</span>
+          <span style="background: rgba(99,102,241,0.1); color: var(--primary); padding: 2px 8px; border-radius: 12px; font-weight: 700;">₹{{ tr.amount | number }}</span>
+          <span style="color: var(--text-muted);">{{ tr.date }}</span>
+          <span *ngIf="tr.note" style="color: var(--text-muted); font-style: italic; flex: 1;">· {{ tr.note }}</span>
+          <button type="button" (click)="ops.openTransferDeleteConfirm(tr)"
+                  style="margin-left: auto; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 13px;">🗑</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

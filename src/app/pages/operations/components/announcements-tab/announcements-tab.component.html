@@ -1,0 +1,78 @@
+<div class="animated-fade-in" style="display: grid; grid-template-columns: 1fr 1.8fr; gap: 24px;">
+  <!-- Add/Edit Announcement Form -->
+  <div class="glass-panel" style="padding: 24px; align-self: start;">
+    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">
+      {{ ops.isEditAnnouncement ? ('✏️ ' + ops.t('edit') + ' ' + ops.t('Announcements')) : ('📢 ' + ops.t('PublishAnnouncement')) }}
+    </h3>
+    <form (submit)="ops.addAnnouncement()" style="display: flex; flex-direction: column; gap: 14px;">
+      <div>
+        <label>{{ ops.t('Title') }}</label>
+        <input type="text" [(ngModel)]="ops.newAnnouncement.title" name="title" required [placeholder]="ops.t('Title')" />
+      </div>
+      <div>
+        <label>{{ ops.t('ContentText') }}</label>
+        <textarea [(ngModel)]="ops.newAnnouncement.content" name="content" required placeholder="..." rows="4"></textarea>
+      </div>
+      <div>
+        <label>{{ ops.t('BroadcastPriority') }}</label>
+        <select [(ngModel)]="ops.newAnnouncement.priority" name="priority">
+          <option value="Normal">Normal</option>
+          <option value="Urgent">Urgent</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <button type="submit" class="btn btn-primary" style="flex: 1;"
+                [disabled]="ops.isEntryLocked"
+                [style.opacity]="ops.isEntryLocked ? '0.5' : '1'"
+                [style.cursor]="ops.isEntryLocked ? 'not-allowed' : 'pointer'">
+          {{ ops.isEditAnnouncement ? ('💾 ' + ops.t('SaveAnnouncement')) : ('📢 ' + ops.t('PublishAnnouncement')) }}
+        </button>
+        <button *ngIf="ops.isEditAnnouncement" type="button" class="btn btn-outline" (click)="ops.cancelEditAnnouncement()">
+          {{ ops.t('cancel') }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Announcements List -->
+  <div class="glass-panel" style="padding: 24px;">
+    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">Active Feeds</h3>
+    <div *ngIf="ops.filteredAnnouncements.length === 0" style="text-align: center; color: var(--text-muted); font-size: 14px; padding: 48px;">
+      No announcements published yet.
+    </div>
+    <div *ngFor="let ann of ops.filteredAnnouncements" style="margin-bottom: 16px; padding: 16px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary);">{{ ann.title }}</h4>
+        <span [class.badge-danger]="ann.priority === 'Urgent'" [class.badge-info]="ann.priority !== 'Urgent'" class="badge">
+          {{ ann.priority }}
+        </span>
+      </div>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">{{ ann.content }}</p>
+      <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <span style="font-size: 11px; color: var(--text-muted);">
+          Broadcasted on: {{ ann.time | date:'medium' }}
+        </span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <button type="button" class="btn btn-outline"
+                  style="font-size: 11px; padding: 4px 8px; border-color: var(--primary); color: var(--primary); display: inline-flex; align-items: center; gap: 4px; background: transparent; cursor: pointer; font-weight: 700; border-radius: 6px;"
+                  (click)="ops.openEditAnnouncement(ann, $event)"
+                  title="Edit Announcement">
+            ✏️ Edit
+          </button>
+          <button type="button" class="btn btn-outline"
+                  style="font-size: 11px; padding: 4px 8px; border-color: var(--danger); color: var(--danger); display: inline-flex; align-items: center; gap: 4px; background: transparent; cursor: pointer; font-weight: 700; border-radius: 6px;"
+                  (click)="ops.deleteAnnouncementDirect(ann, $event)"
+                  title="Delete Announcement">
+            🗑️ Delete
+          </button>
+          <button type="button" class="btn btn-outline"
+                  style="font-size: 11px; padding: 4px 10px; border-color: #25D366; color: #25D366; display: inline-flex; align-items: center; gap: 4px; background: transparent; cursor: pointer; font-weight: 700; border-radius: 6px;"
+                  (click)="ops.broadcastAnnouncement(ann)">
+            💬 WhatsApp Broadcast
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

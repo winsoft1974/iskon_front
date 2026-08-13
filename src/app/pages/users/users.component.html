@@ -1,0 +1,507 @@
+<div class="users-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">👤 User Management</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <!-- Search -->
+      <div class="search-bar">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+        </svg>
+        <input type="text" [(ngModel)]="search" placeholder="Search name, username, role..."/>
+      </div>
+      <!-- Refresh -->
+      <button class="btn btn-outline btn-sm" (click)="loadUsers()" [disabled]="loading">
+        <span *ngIf="!loading">🔄 Refresh</span>
+        <span *ngIf="loading">Loading...</span>
+      </button>
+      <!-- Manage Roles -->
+      <button class="btn btn-outline btn-sm" (click)="openRoleModal()" style="border-color:#6366f1;color:#6366f1;">
+        🎭 Manage Roles
+      </button>
+      <!-- Create New -->
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        ➕ New User
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card" style="border-left: 4px solid #10b981;">
+      <div class="stat-icon" style="background: rgba(16,185,129,0.1); color: #10b981;">🟢</div>
+      <div>
+        <div class="stat-value" style="color: #10b981;">{{ countOnlineUsers }}</div>
+        <div class="stat-label">Online Active Now</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👑</div>
+      <div>
+        <div class="stat-value">{{ countKasAuthority }}</div>
+        <div class="stat-label">Kas Authority</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🧑‍💼</div>
+      <div>
+        <div class="stat-value">{{ countServiceIncharge }}</div>
+        <div class="stat-label">Service Incharge</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🙋</div>
+      <div>
+        <div class="stat-value">{{ countVolunteer }}</div>
+        <div class="stat-label">Volunteers</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚠️</div>
+      <div>
+        <div class="stat-value">{{ noAccountCount }}</div>
+        <div class="stat-label">No Login Yet</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card">
+    <div class="table-toolbar">
+      <h3>👥 Users & Volunteers ({{ filteredUsers.length }})</h3>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="empty-state">
+      <div class="empty-state-icon">⏳</div>
+      <p>Loading users...</p>
+    </div>
+
+    <!-- Table -->
+    <div *ngIf="!loading" style="overflow-x:auto;">
+      <table class="users-table" *ngIf="filteredUsers.length > 0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>User / Volunteer</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Department</th>
+            <th>Last Login Time</th>
+            <th>Live Status</th>
+            <th style="text-align:center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of filteredUsers; let i = index"
+              [class.no-account-row]="!user.hasUserAccount">
+            <td style="color:var(--text-muted);font-size:13px;">{{ i + 1 }}</td>
+
+            <!-- Name + Phone -->
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="user-avatar"
+                     [style.background]="getRoleBg(user.role)"
+                     [style.color]="roleColor(user.role)">
+                  {{ getInitial(user.fullName) }}
+                </div>
+                <div>
+                  <div class="user-name">{{ user.fullName || '—' }}</div>
+                  <div class="user-sub" *ngIf="user.phone">📞 {{ user.phone }}</div>
+                  <div class="user-sub" *ngIf="user.volunteerId" style="color:#6366f1;">
+                    🔗 Volunteer linked
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Username -->
+            <td>
+              <span *ngIf="user.hasUserAccount" style="font-family:monospace;font-size:13px;font-weight:700;color:var(--text-primary);">
+                &#64;{{ user.username }}
+              </span>
+              <span *ngIf="!user.hasUserAccount" style="color:#f59e0b;font-size:12px;font-weight:600;">
+                ⚠️ No Login
+              </span>
+            </td>
+
+            <!-- Role -->
+            <td>
+              <span class="role-badge"
+                    [style.background]="getRoleBg(user.role)"
+                    [style.color]="roleColor(user.role)"
+                    [style.border]="getRoleBorder(user.role)">
+                {{ roleBadge(user.role) }}
+              </span>
+            </td>
+
+            <!-- Department -->
+            <td>
+              <span style="font-size:13px;color:var(--text-primary);font-weight:600;">{{ user.department }}</span>
+            </td>
+
+            <!-- Last Login Time -->
+            <td>
+              <div *ngIf="user.hasUserAccount">
+                <div style="font-size:12px;font-weight:700;color:var(--text-primary);">
+                  {{ formatTimeAgo(user.lastLoginAt) }}
+                </div>
+                <div style="font-size:10px;color:var(--text-muted);" *ngIf="user.lastLoginAt">
+                  🕒 {{ user.lastLoginAt | date:'medium' }}
+                </div>
+              </div>
+              <span *ngIf="!user.hasUserAccount" style="font-size:11px;color:var(--text-muted);">—</span>
+            </td>
+
+            <!-- Live Status (Online / Offline) -->
+            <td>
+              <div *ngIf="user.hasUserAccount">
+                <span *ngIf="isOnline(user)"
+                      style="display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,0.12);color:#059669;border:1px solid rgba(16,185,129,0.3);font-size:11px;font-weight:800;padding:3px 10px;border-radius:12px;">
+                  <span style="width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;animation:ping 1.5s infinite;"></span> 🟢 Online
+                </span>
+                <span *ngIf="!isOnline(user)"
+                      style="display:inline-flex;align-items:center;gap:6px;background:rgba(100,116,139,0.1);color:#64748b;border:1px solid rgba(100,116,139,0.2);font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;">
+                  <span style="width:7px;height:7px;border-radius:50%;background:#94a3b8;"></span> 🔴 Offline
+                </span>
+              </div>
+              <span *ngIf="!user.hasUserAccount" style="display:inline-flex;align-items:center;gap:5px;color:#f59e0b;font-size:12px;font-weight:700;">
+                <span class="status-dot" style="background:#f59e0b;"></span> No Account
+              </span>
+            </td>
+
+            <!-- Actions -->
+            <td style="text-align:center;">
+              <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+                <!-- Create Login (for volunteers with no account) -->
+                <button *ngIf="!user.hasUserAccount" class="btn btn-success btn-sm"
+                        (click)="openCreateModal(user.rawVolunteer)">
+                  🔑 Create Login
+                </button>
+                <!-- Edit -->
+                <button *ngIf="user.hasUserAccount" class="btn btn-outline btn-sm"
+                        (click)="openEditModal(user)" [disabled]="user.isDeleting">
+                  ✏️ Edit
+                </button>
+                <!-- Delete -->
+                <button *ngIf="user.hasUserAccount && user.username !== 'admin'" class="btn btn-danger btn-sm"
+                        (click)="confirmDelete(user)" [disabled]="user.isDeleting">
+                  <span *ngIf="!user.isDeleting">🗑️</span>
+                  <span *ngIf="user.isDeleting">...</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredUsers.length === 0" class="empty-state">
+        <div class="empty-state-icon">👤</div>
+        <p>No users or volunteers found.</p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════ CREATE USER MODAL ═══════════ -->
+  <div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateModal()">
+    <div class="modal-box" style="max-width: 560px; padding: 24px 28px;" (click)="$event.stopPropagation()">
+      <div class="modal-title" style="margin-bottom: 16px; font-size: 18px;">➕ Create User Account</div>
+
+      <div class="form-grid">
+        <div class="error-msg" *ngIf="createForm.error">{{ createForm.error }}</div>
+
+        <!-- Searchable Yatra Member Picker (Full Width) -->
+        <div class="form-group form-group-full">
+          <label class="form-label">🔍 Select Yatra Member</label>
+          <div style="position:relative;">
+            <input class="form-control" type="text" [(ngModel)]="memberSearch"
+                   (focus)="showMemberDropdown = true"
+                   (input)="showMemberDropdown = true"
+                   placeholder="Type name or phone number..."/>
+
+            <div *ngIf="showMemberDropdown && filteredMembers.length > 0"
+                 style="position:absolute;top:100%;left:0;right:0;max-height:200px;overflow-y:auto;background:var(--bg-secondary);border:1.5px solid #6366f1;border-radius:12px;z-index:1000;box-shadow:0 10px 30px rgba(0,0,0,0.3);margin-top:4px;">
+              <div *ngFor="let m of filteredMembers" (click)="selectMember(m)"
+                   style="padding:9px 12px;border-bottom:1px solid var(--border-color);cursor:pointer;display:flex;align-items:center;justify-content:space-between;"
+                   onmouseover="this.style.background='rgba(99,102,241,0.1)'"
+                   onmouseout="this.style.background='transparent'">
+                <div>
+                  <div style="font-weight:700;font-size:12px;color:var(--text-primary);">{{ m.name }}</div>
+                  <div style="font-size:11px;color:var(--text-muted);">📞 {{ m.phone || 'No phone' }} • {{ m.department || 'General' }}</div>
+                </div>
+                <span style="font-size:10px;padding:2px 7px;border-radius:6px;font-weight:800;"
+                      [style.background]="m.type === 'Volunteer' ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)'"
+                      [style.color]="m.type === 'Volunteer' ? '#10b981' : '#6366f1'">
+                  {{ m.type }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full Name (Col 1) -->
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input class="form-control" type="text" [(ngModel)]="createForm.fullName" placeholder="e.g. Ramesh Sharma"/>
+        </div>
+
+        <!-- Username (Col 2) -->
+        <div class="form-group">
+          <label class="form-label">Username *</label>
+          <input class="form-control" type="text" [(ngModel)]="createForm.username" placeholder="e.g. ramesh_food"/>
+        </div>
+
+        <!-- Password (Col 1) -->
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <div class="pass-wrapper">
+            <input class="form-control" [type]="createForm.showPass ? 'text' : 'password'"
+                   [(ngModel)]="createForm.password" placeholder="Enter password"/>
+            <button class="pass-eye" (click)="createForm.showPass = !createForm.showPass" type="button">
+              {{ createForm.showPass ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          <!-- Live Validation Rules -->
+          <div style="display:flex;gap:8px;margin-top:4px;font-size:10px;flex-wrap:wrap;">
+            <span [style.color]="hasMinLength(createForm.password) ? '#10b981' : 'var(--text-muted)'">
+              {{ hasMinLength(createForm.password) ? '✓' : '○' }} 6+ chars
+            </span>
+            <span [style.color]="hasUpper(createForm.password) ? '#10b981' : 'var(--text-muted)'">
+              {{ hasUpper(createForm.password) ? '✓' : '○' }} A-Z
+            </span>
+            <span [style.color]="hasLower(createForm.password) ? '#10b981' : 'var(--text-muted)'">
+              {{ hasLower(createForm.password) ? '✓' : '○' }} a-z
+            </span>
+            <span [style.color]="hasNumber(createForm.password) ? '#10b981' : 'var(--text-muted)'">
+              {{ hasNumber(createForm.password) ? '✓' : '○' }} 0-9
+            </span>
+          </div>
+        </div>
+
+        <!-- Confirm Password (Col 2) -->
+        <div class="form-group">
+          <label class="form-label">Confirm Password *</label>
+          <input class="form-control" [type]="createForm.showPass ? 'text' : 'password'"
+                 [(ngModel)]="createForm.confirmPassword" placeholder="Re-enter password"/>
+          <div *ngIf="createForm.confirmPassword && createForm.password !== createForm.confirmPassword"
+               style="color:#ef4444;font-size:10px;margin-top:4px;">
+            ❌ Passwords do not match!
+          </div>
+          <div *ngIf="createForm.confirmPassword && createForm.password === createForm.confirmPassword"
+               style="color:#10b981;font-size:10px;margin-top:4px;">
+            ✓ Passwords match!
+          </div>
+        </div>
+
+        <!-- Role (Col 1) -->
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <select class="form-control" [(ngModel)]="createForm.role">
+            <option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</option>
+          </select>
+        </div>
+
+        <!-- Department (Col 2) -->
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <select class="form-control" [(ngModel)]="createForm.department">
+            <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+          </select>
+        </div>
+
+        <!-- Assigned Package (Full Width) -->
+        <div class="form-group form-group-full">
+          <label class="form-label">Assigned Package</label>
+          <select class="form-control" [(ngModel)]="createForm.packageId">
+            <option [ngValue]="null">-- All Packages / None --</option>
+            <option *ngFor="let p of packages" [ngValue]="p.id">{{ p.name }}</option>
+          </select>
+        </div>
+
+        <!-- Link Volunteer dropdown (Full Width if visible) -->
+        <div class="form-group form-group-full" *ngIf="!createForm.volunteerId && unmappedVolunteers.length > 0">
+          <label class="form-label">Link Volunteer (optional)</label>
+          <select class="form-control" [(ngModel)]="createForm.volunteerId">
+            <option [ngValue]="null">-- Do not link --</option>
+            <option *ngFor="let v of unmappedVolunteers" [ngValue]="v.id">
+              {{ v.name }} ({{ v.assignedDepartment || 'General' }})
+            </option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-outline btn-sm" (click)="closeCreateModal()" [disabled]="createForm.saving">Cancel</button>
+          <button class="btn btn-primary btn-sm" (click)="submitCreate()" [disabled]="createForm.saving">
+            <span *ngIf="!createForm.saving">✅ Create Account</span>
+            <span *ngIf="createForm.saving">Creating...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════ EDIT USER MODAL ═══════════ -->
+  <div class="modal-overlay" *ngIf="editForm" (click)="closeEditModal()">
+    <div class="modal-box" style="max-width: 560px; padding: 24px 28px;" (click)="$event.stopPropagation()">
+      <div class="modal-title" style="margin-bottom: 16px; font-size: 18px;">✏️ Edit User: &#64;{{ editForm.username }}</div>
+
+      <div class="form-grid">
+        <div class="error-msg" *ngIf="editForm.error">{{ editForm.error }}</div>
+
+        <!-- Full Name (Col 1) -->
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input class="form-control" type="text" [(ngModel)]="editForm.fullName"/>
+        </div>
+
+        <!-- Account Status (Col 2) -->
+        <div class="form-group" style="display:flex;flex-direction:column;justify-content:center;">
+          <label class="form-label">Account Status</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--text-primary);cursor:pointer;">
+            <input type="checkbox" [(ngModel)]="editForm.isActive" style="width:16px;height:16px;"/>
+            Active Account
+          </label>
+        </div>
+
+        <!-- Role (Col 1) -->
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <select class="form-control" [(ngModel)]="editForm.role">
+            <option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</option>
+          </select>
+        </div>
+
+        <!-- Department (Col 2) -->
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <select class="form-control" [(ngModel)]="editForm.department">
+            <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+          </select>
+        </div>
+
+        <!-- Assigned Package (Full Width) -->
+        <div class="form-group form-group-full">
+          <label class="form-label">Assigned Package</label>
+          <select class="form-control" [(ngModel)]="editForm.packageId">
+            <option [ngValue]="null">-- All Packages / None --</option>
+            <option *ngFor="let p of packages" [ngValue]="p.id">{{ p.name }}</option>
+          </select>
+        </div>
+
+        <!-- New Password (Full Width) -->
+        <div class="form-group form-group-full">
+          <label class="form-label">New Password (optional)</label>
+          <div class="pass-wrapper">
+            <input class="form-control" [type]="editShowPass ? 'text' : 'password'"
+                   [(ngModel)]="editNewPassword" placeholder="Enter new password to change"/>
+            <button class="pass-eye" (click)="editShowPass = !editShowPass" type="button">
+              {{ editShowPass ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          <!-- Live Validation Rules for Edit -->
+          <div *ngIf="editNewPassword" style="display:flex;gap:8px;margin-top:4px;font-size:10px;flex-wrap:wrap;">
+            <span [style.color]="hasMinLength(editNewPassword) ? '#10b981' : 'var(--text-muted)'">
+              {{ hasMinLength(editNewPassword) ? '✓' : '○' }} 6+ chars
+            </span>
+            <span [style.color]="hasUpper(editNewPassword) ? '#10b981' : 'var(--text-muted)'">
+              {{ hasUpper(editNewPassword) ? '✓' : '○' }} A-Z
+            </span>
+            <span [style.color]="hasLower(editNewPassword) ? '#10b981' : 'var(--text-muted)'">
+              {{ hasLower(editNewPassword) ? '✓' : '○' }} a-z
+            </span>
+            <span [style.color]="hasNumber(editNewPassword) ? '#10b981' : 'var(--text-muted)'">
+              {{ hasNumber(editNewPassword) ? '✓' : '○' }} 0-9
+            </span>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-outline btn-sm" (click)="closeEditModal()" [disabled]="editForm.saving">Cancel</button>
+          <button class="btn btn-primary btn-sm" (click)="submitEdit()" [disabled]="editForm.saving">
+            <span *ngIf="!editForm.saving">💾 Save Changes</span>
+            <span *ngIf="editForm.saving">Saving...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════ DELETE CONFIRM MODAL ═══════════ -->
+  <div class="modal-overlay" *ngIf="deleteTarget" (click)="cancelDelete()">
+    <div class="modal-box" style="max-width:400px;" (click)="$event.stopPropagation()">
+      <div class="modal-title" style="color:#ef4444;">🗑️ Delete Account?</div>
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:24px;">
+        Account <strong style="color:var(--text-primary);">&#64;{{ deleteTarget.username }}</strong> ({{ deleteTarget.fullName }}) will be permanently deleted.
+      </p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="cancelDelete()">Cancel</button>
+        <button class="btn btn-danger" (click)="doDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════ MANAGE ROLES MODAL ═══════════ -->
+  <div class="modal-overlay" *ngIf="showRoleModal" (click)="closeRoleModal()">
+    <div class="modal-box" style="max-width:540px;" (click)="$event.stopPropagation()">
+      <div class="modal-title">🎭 System Roles</div>
+
+      <div class="error-msg" *ngIf="roleError">{{ roleError }}</div>
+
+      <!-- Existing Roles List -->
+      <div style="margin-bottom:20px;">
+        <label class="form-label">Existing Roles:</label>
+        <div style="max-height:180px;overflow-y:auto;border:1px solid var(--border-color);border-radius:10px;padding:8px;background:var(--bg-primary);">
+          <div *ngFor="let r of roles" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border-color);">
+            <div>
+              <div style="font-weight:700;font-size:13px;color:var(--text-primary);">{{ r.label }}</div>
+              <div style="font-size:11px;color:var(--text-muted);" *ngIf="r.description">{{ r.description }}</div>
+            </div>
+            <button *ngIf="r.id && r.value !== 'KasAuthority' && r.value !== 'ServiceIncharge' && r.value !== 'Volunteer'"
+                    class="btn btn-danger btn-sm" (click)="submitDeleteRole(r)" title="Delete Role">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add New Custom Role Form -->
+      <div style="border-top:1.5px dashed var(--border-color);padding-top:16px;">
+        <label class="form-label" style="color:#6366f1;">➕ Add Custom Role</label>
+        <div class="form-group" style="margin-top:8px;">
+          <input class="form-control" type="text" [(ngModel)]="newRoleName" placeholder="Role Name (e.g. Accountant, Coordinator)"/>
+        </div>
+        <div class="form-group">
+          <input class="form-control" type="text" [(ngModel)]="newRoleDesc" placeholder="Description (e.g. Accounts & Finance management)"/>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;">
+          <button class="btn btn-primary btn-sm" (click)="submitCreateRole()" [disabled]="roleSaving">
+            <span *ngIf="!roleSaving">➕ Add Role</span>
+            <span *ngIf="roleSaving">Saving...</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:20px;">
+        <button class="btn btn-outline" (click)="closeRoleModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Toast Notification -->
+  <div *ngIf="toast" class="toast"
+       [class.toast-success]="toastType === 'success'"
+       [class.toast-error]="toastType === 'error'"
+       [class.toast-info]="toastType === 'info'">
+    {{ toast }}
+  </div>
+
+</div>

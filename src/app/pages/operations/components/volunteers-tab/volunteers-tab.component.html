@@ -1,0 +1,214 @@
+<div class="glass-panel animated-fade-in" style="padding: 24px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+    <h3 style="font-size: 18px; font-weight: 600;">{{ ops.t('VolunteerRoster') }}</h3>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+      <button *ngIf="ops.isKasAuthority" class="btn btn-outline" (click)="ops.openDeptManageModal()"
+              style="font-size: 12px; padding: 6px 14px; border-color: var(--primary); color: var(--primary); display: inline-flex; align-items: center; gap: 5px;">
+        🏷️ {{ ops.t('ManageDepartments') }}
+      </button>
+
+      <button *ngIf="ops.isKasAuthority" class="btn btn-primary" (click)="ops.openVolunteerModal()">
+        <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        {{ ops.t('AddVolunteer') }}
+      </button>
+    </div>
+
+  </div>
+  <div *ngIf="ops.filteredVolunteers.length === 0" style="text-align: center; color: var(--text-muted); font-size: 14px; padding: 48px;">
+    No volunteers registered yet.
+  </div>
+  <div class="table-container" *ngIf="ops.filteredVolunteers.length > 0">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th style="width: 28px;"></th>
+          <th>{{ ops.t('VolunteerName') }}</th>
+          <th>{{ ops.t('AssignedDepartment') }}</th>
+          <th>{{ ops.t('DutyTime') }}</th>
+          <th style="text-align: center;">{{ ops.t('Balance') }}</th>
+          <th style="text-align: center;">{{ ops.t('Actions') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let vol of ops.filteredVolunteers">
+          <!-- Main Row -->
+          <tr (click)="ops.toggleVolDetail(vol.id)" style="cursor: pointer;"
+              [style.background]="ops.expandedVolId === vol.id ? 'rgba(99,102,241,0.06)' : ''">
+            <!-- Expand arrow -->
+            <td style="padding: 8px 6px; text-align: center; color: var(--text-muted); font-size: 11px;"
+                [style.transform]="ops.expandedVolId === vol.id ? 'rotate(90deg)' : 'rotate(0deg)'"
+                style="transition: transform 0.2s; display: inline-block;">▶</td>
+            <!-- 1. Volunteer Name -->
+            <td style="font-weight: 600; color: var(--text-primary);">
+              <div>{{ vol.name }}</div>
+              <div style="font-size: 11px; color: var(--text-muted); font-weight: 400;" *ngIf="vol.phone">{{ vol.phone }}</div>
+            </td>
+            <!-- 2. Assigned Department -->
+            <td><span class="badge badge-info">{{ vol.assignedDepartment }}</span></td>
+            <!-- 3. Duty Time (Shift) -->
+            <td style="font-size: 13px; color: var(--text-secondary);">{{ vol.shift }}</td>
+            <!-- 4. Balance -->
+            <td style="text-align: center;">
+              <ng-container *ngIf="ops.volunteerAdvances[vol.id] || ops.getVolunteerExpenses(vol.id) > 0 || ops.getVolunteerTransferBalance(vol.id) !== 0">
+                <span style="font-weight: 800; padding: 4px 12px; border-radius: 14px; font-size: 13px;"
+                      [style.background]="ops.getVolunteerBalance(vol.id) >= 0 ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)'"
+                      [style.color]="ops.getVolunteerBalance(vol.id) >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+                  ₹{{ ops.getVolunteerBalance(vol.id) | number }}
+                </span>
+              </ng-container>
+              <span *ngIf="!ops.volunteerAdvances[vol.id] && ops.getVolunteerExpenses(vol.id) === 0 && ops.getVolunteerTransferBalance(vol.id) === 0"
+                    style="color: var(--text-muted); font-size: 12px;">₹0</span>
+            </td>
+
+            <!-- 5. Edit & Delete Actions -->
+            <td style="text-align: center; white-space: nowrap;" (click)="$event.stopPropagation()">
+              <div style="display: flex; gap: 6px; justify-content: center;">
+                <button type="button" class="btn btn-outline"
+                        style="font-size: 11px; padding: 4px 8px; border-color: #25D366; color: #25D366; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-weight: 600; border-radius: 6px;"
+                        (click)="ops.contactVolunteerWhatsApp(vol)"
+                        title="Message Volunteer">
+                  💬 Message
+                </button>
+                <button *ngIf="ops.isKasAuthority" type="button" class="btn btn-outline"
+                        style="font-size: 11px; padding: 4px 8px; border-color: var(--primary); color: var(--primary); display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-weight: 600; border-radius: 6px;"
+                        (click)="ops.openEditVolunteerModal(vol, $event)"
+                        title="Edit Volunteer">
+                  ✏️ Edit
+                </button>
+                <button *ngIf="ops.isKasAuthority" type="button" class="btn btn-outline"
+                        style="font-size: 11px; padding: 4px 8px; border-color: var(--danger); color: var(--danger); display: inline-flex; align-items: center; gap: 4px;"
+                        (click)="ops.openVolDeleteConfirm(vol, $event)"
+                        title="Delete Volunteer">
+                  🗑️ Delete
+                </button>
+
+              </div>
+            </td>
+          </tr>
+
+          <!-- Expanded Ledger Row -->
+          <tr *ngIf="ops.expandedVolId === vol.id">
+            <td colspan="6" style="padding: 0; border-top: none;">
+              <div style="background: rgba(99,102,241,0.03); border-top: 1px dashed rgba(99,102,241,0.25); border-bottom: 1px dashed rgba(99,102,241,0.15); padding: 14px 20px;">
+
+                <!-- Header strip -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                  <span style="font-size: 13px; font-weight: 700; color: var(--primary);">
+                    📋 {{ vol.name }} – Advance Ledger
+                  </span>
+                  <button type="button" class="btn btn-outline"
+                          style="font-size: 11px; padding: 4px 10px; border-color: var(--primary); color: var(--primary);"
+                          (click)="ops.openAdvanceModal(vol); $event.stopPropagation()">
+                    {{ ops.volunteerAdvances[vol.id] ? '✏️ Edit Advance' : '💰 Give Advance' }}
+                  </button>
+                </div>
+
+                <!-- No activity message -->
+                <div *ngIf="ops.getVolunteerLedger(vol.id).length === 0"
+                     style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 16px 0;">
+                  No advance or expense recorded yet.
+                </div>
+
+                <!-- Ledger Table -->
+                <table *ngIf="ops.getVolunteerLedger(vol.id).length > 0"
+                       style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                      <th style="text-align: left; padding: 5px 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700;">Date</th>
+                      <th style="text-align: left; padding: 5px 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700;">Description</th>
+                      <th style="text-align: right; padding: 5px 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700;">Amount</th>
+                      <th style="text-align: right; padding: 5px 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700;">Running Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <ng-container *ngFor="let entry of ops.getVolunteerLedger(vol.id)">
+                      <!-- Main ledger row -->
+                      <tr [style.border-bottom]="entry.type === 'expense' && entry.items && entry.items.length > 0 ? 'none' : '1px solid rgba(0,0,0,0.04)'"
+                          [style.background]="entry.type === 'expense' ? 'rgba(239,68,68,0.02)' : 'transparent'">
+                        <td style="padding: 6px 8px; color: var(--text-muted); white-space: nowrap; vertical-align: top;">
+                          {{ entry.date || '—' }}
+                        </td>
+                        <td style="padding: 6px 8px; font-weight: 600; vertical-align: top;">
+                          <span *ngIf="entry.type === 'advance'"
+                                style="display: inline-flex; align-items: center; gap: 5px; color: var(--primary);">
+                            💰 {{ entry.label }}
+                          </span>
+                          <span *ngIf="entry.type === 'transfer-in'"
+                                style="display: inline-flex; align-items: center; gap: 5px; color: var(--secondary);">
+                            ↗ {{ entry.label }}
+                          </span>
+                          <span *ngIf="entry.type === 'transfer-out'"
+                                style="display: inline-flex; align-items: center; gap: 5px; color: #f59e0b;">
+                            ↙ {{ entry.label }}
+                          </span>
+                          <span *ngIf="entry.type === 'expense'"
+                                style="display: inline-flex; align-items: center; gap: 5px; color: var(--danger);">
+                            📤 {{ entry.label }}
+                          </span>
+                        </td>
+                        <td style="padding: 6px 8px; text-align: right; font-weight: 700; white-space: nowrap; vertical-align: top;"
+                            [style.color]="entry.amount >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+                          {{ entry.amount >= 0 ? '+' : '' }}₹{{ entry.amount | number }}
+                        </td>
+                        <td style="padding: 6px 8px; text-align: right; font-weight: 800; white-space: nowrap; vertical-align: top;"
+                            [style.color]="entry.running >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+                          ₹{{ entry.running | number }}
+                        </td>
+                      </tr>
+
+                      <!-- Itemwise breakdown row (only for expenses with items) -->
+                      <tr *ngIf="entry.type === 'expense' && entry.items && entry.items.length > 0"
+                          style="border-bottom: 1px solid rgba(0,0,0,0.04);">
+                        <td></td>
+                        <td colspan="3" style="padding: 4px 8px 10px 20px;">
+                          <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                            <span *ngFor="let it of entry.items"
+                                  style="display: inline-flex; align-items: center; gap: 4px; background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.15); border-radius: 6px; padding: 3px 8px; font-size: 11px; color: var(--text-secondary);">
+                              <span style="font-weight: 600; color: var(--text-primary);">{{ it.item }}</span>
+                              <span style="color: var(--text-muted);">×{{ it.unit }}</span>
+                              <span style="color: var(--text-muted);">&#64;₹{{ it.unitPrice | number }}</span>
+                              <span style="font-weight: 700; color: var(--danger);">= ₹{{ (it.unit * it.unitPrice) | number }}</span>
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    </ng-container>
+
+                  </tbody>
+                  <tfoot>
+                    <tr style="border-top: 2px solid var(--border-color); background: rgba(99,102,241,0.04);">
+                      <td colspan="2" style="padding: 10px 8px; font-weight: 700; font-size: 12px; color: var(--text-primary);">
+                        🏦 Net Balance Remaining
+                        <div style="font-size: 10px; font-weight: 500; color: var(--text-muted); margin-top: 3px;">
+                          Advance Given − Expense = Balance
+                        </div>
+                      </td>
+                      <!-- Advance − Expenses formula -->
+                      <td style="padding: 10px 8px; text-align: right; vertical-align: middle;">
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 11px;">
+                          <span style="color: var(--primary); font-weight: 700;">+₹{{ (ops.volunteerAdvances[vol.id] || 0) | number }}</span>
+                          <span style="color: var(--danger); font-weight: 700;">−₹{{ ops.getVolunteerExpenses(vol.id) | number }}</span>
+                        </div>
+                      </td>
+                      <!-- Final Balance -->
+                      <td style="padding: 10px 8px; text-align: right; font-weight: 800; font-size: 15px;"
+                          [style.color]="ops.getVolunteerBalance(vol.id) >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+                        {{ ops.getVolunteerBalance(vol.id) >= 0 ? '' : '−' }}₹{{ (ops.getVolunteerBalance(vol.id) < 0 ? -ops.getVolunteerBalance(vol.id) : ops.getVolunteerBalance(vol.id)) | number }}
+                        <div style="font-size: 10px; font-weight: 600; margin-top: 2px;">
+                          {{ ops.getVolunteerBalance(vol.id) >= 0 ? '✅ Balance Available' : '⚠️ Over Spent!' }}
+                        </div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</div>
