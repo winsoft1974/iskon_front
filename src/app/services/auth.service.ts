@@ -19,7 +19,7 @@ export interface LoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly BASE = 'http://localhost:5206/api';
+  private readonly BASE = 'http://103.102.144.180:8081/api';
   private readonly TOKEN_KEY = 'iscon_token';
   private readonly USER_KEY  = 'iscon_user';
 

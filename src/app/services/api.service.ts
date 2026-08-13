@@ -8,7 +8,7 @@ import { tap, catchError } from 'rxjs/operators';
 })
 export class ApiService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:5206/api';
+  private baseUrl = 'http://103.102.144.180:8081/api';
 
   // Network Status subjects
   isOffline$ = new BehaviorSubject<boolean>(!navigator.onLine);

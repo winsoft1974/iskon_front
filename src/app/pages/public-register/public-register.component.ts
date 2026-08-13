@@ -14,7 +14,7 @@ export class PublicRegisterComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
 
-  private baseUrl = 'http://localhost:5206/api';
+  private baseUrl = 'http://103.102.144.180:8081/api';
 
   loading = true;
   submitting = false;
