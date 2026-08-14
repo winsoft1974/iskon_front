@@ -19,9 +19,7 @@ export interface LoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly BASE = (typeof window !== 'undefined' && window.location.protocol === 'http:')
-    ? 'http://103.102.144.180:8081/api'
-    : '/api';
+  private readonly BASE = '/api';
   private readonly TOKEN_KEY = 'iscon_token';
   private readonly USER_KEY  = 'iscon_user';
 
