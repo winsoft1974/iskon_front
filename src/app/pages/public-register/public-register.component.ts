@@ -14,7 +14,9 @@ export class PublicRegisterComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
 
-  private baseUrl = 'http://103.102.144.180:8081/api';
+  private baseUrl = (typeof window !== 'undefined' && window.location.protocol === 'http:')
+    ? 'http://103.102.144.180:8081/api'
+    : '/api';
 
   loading = true;
   submitting = false;
