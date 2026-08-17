@@ -363,10 +363,16 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  toggleSettingsPanel(event: MouseEvent) {
+    event.stopPropagation();
+    event.preventDefault();
+    this.showSettings = !this.showSettings;
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event) {
     const target = event.target as HTMLElement;
-    if (!target.closest('#settings-panel') && !target.closest('#settings-btn')) {
+    if (this.showSettings && target && !target.closest('#settings-panel') && !target.closest('#settings-btn')) {
       this.showSettings = false;
     }
   }

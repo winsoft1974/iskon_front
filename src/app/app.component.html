@@ -138,9 +138,8 @@
 
         <!-- Settings Button -->
         <button id="settings-btn"
-
-                (click)="showSettings = !showSettings; $event.stopPropagation()"
-                style="width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--bg-primary); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px;"
+                (click)="toggleSettingsPanel($event)"
+                style="width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--bg-primary); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; position: relative; z-index: 1000;"
                 title="Settings">
           ⚙️
         </button>
@@ -159,7 +158,7 @@
         <div *ngIf="showSettings"
              id="settings-panel"
              (click)="$event.stopPropagation()"
-             style="position: absolute; top: 48px; right: 0; z-index: 9999; width: 330px; background: var(--bg-secondary); border: 1.5px solid var(--border-color); border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.18); padding: 16px; display: flex; flex-direction: column; gap: 13px; overflow-y: auto; max-height: 92vh; animation: fadeIn 0.2s ease;">
+             style="position: absolute; top: 48px; right: 0; z-index: 10000; width: 330px; background: var(--bg-secondary); border: 1.5px solid var(--border-color); border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.25); padding: 16px; display: flex; flex-direction: column; gap: 13px; overflow-y: auto; max-height: 92vh; animation: fadeIn 0.2s ease;">
 
           <!-- Header -->
           <div style="display: flex; justify-content: space-between; align-items: center;">
