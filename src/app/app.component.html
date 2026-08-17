@@ -139,7 +139,7 @@
         <!-- Settings Button -->
         <button id="settings-btn"
                 (click)="toggleSettingsPanel($event)"
-                style="width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--bg-primary); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; position: relative; z-index: 1000;"
+                style="width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--bg-primary); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px;"
                 title="Settings">
           ⚙️
         </button>
@@ -153,131 +153,6 @@
                 onmouseout="this.style.background='rgba(239,68,68,0.06)'">
           🚪
         </button>
-
-        <!-- ══ Settings Backdrop & Fixed Overlay Panel (No Overflow Clipping) ══ -->
-        <div *ngIf="showSettings"
-             (click)="showSettings = false"
-             style="position: fixed; inset: 0; z-index: 99998; background: rgba(15, 23, 42, 0.25); backdrop-filter: blur(2px);"></div>
-
-        <div *ngIf="showSettings"
-             id="settings-panel"
-             (click)="$event.stopPropagation()"
-             style="position: fixed !important; top: 70px !important; right: 20px !important; z-index: 99999 !important; width: 340px; background: var(--bg-secondary); border: 2px solid var(--primary); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); padding: 18px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; max-height: 85vh; animation: fadeIn 0.2s ease;">
-
-          <!-- Header -->
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0;">⚙️ {{ t('appSettings') }}</h3>
-            <button (click)="showSettings = false" style="background: transparent; border: none; cursor: pointer; font-size: 16px; color: var(--text-muted);">✕</button>
-          </div>
-          <div style="border-top: 1px solid var(--border-color);"></div>
-
-          <!-- 1. Theme -->
-          <div>
-            <div class="setting-label">{{ t('settingsTheme') }}</div>
-            <div style="display: flex; gap: 8px;">
-              <button (click)="toggleTheme()" [disabled]="theme === 'light'"
-                      [style.background]="theme === 'light' ? 'var(--primary)' : 'var(--bg-primary)'"
-                      [style.color]="theme === 'light' ? '#fff' : 'var(--text-secondary)'"
-                      [style.borderColor]="theme === 'light' ? 'var(--primary)' : 'var(--border-color)'"
-                      class="setting-btn">
-                {{ t('settingsLight') }}
-              </button>
-              <button (click)="toggleTheme()" [disabled]="theme === 'dark'"
-                      [style.background]="theme === 'dark' ? 'var(--primary)' : 'var(--bg-primary)'"
-                      [style.color]="theme === 'dark' ? '#fff' : 'var(--text-secondary)'"
-                      [style.borderColor]="theme === 'dark' ? 'var(--primary)' : 'var(--border-color)'"
-                      class="setting-btn">
-                {{ t('settingsDark') }}
-              </button>
-            </div>
-          </div>
-
-          <!-- 2. Font Size -->
-          <div>
-            <div class="setting-label">{{ t('settingsFontSize') }}</div>
-            <div style="display: flex; gap: 6px;">
-              <button *ngFor="let sz of [{key:'small',label:'S — Small'},{key:'medium',label:'M — Normal'},{key:'large',label:'L — Large'},{key:'xlarge',label:'XL'}]"
-                      (click)="setFontSize($any(sz.key))"
-                      [style.background]="fontSize === sz.key ? 'var(--primary)' : 'var(--bg-primary)'"
-                      [style.color]="fontSize === sz.key ? '#fff' : 'var(--text-secondary)'"
-                      [style.borderColor]="fontSize === sz.key ? 'var(--primary)' : 'var(--border-color)'"
-                      class="setting-btn" style="font-size: 10px; white-space: nowrap;">
-                {{ sz.label }}
-              </button>
-            </div>
-          </div>
-
-          <!-- 3. Language -->
-          <div>
-            <div class="setting-label">{{ t('settingsLanguage') }}</div>
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-              <button *ngFor="let lang of [{key:'english',label:'English'},{key:'marathi',label:'मराठी'},{key:'kannada',label:'ಕನ್ನಡ'},{key:'hindi',label:'हिन्दी'}]"
-                      (click)="setLanguage($any(lang.key))"
-                      [style.background]="language === lang.key ? 'var(--primary)' : 'var(--bg-primary)'"
-                      [style.color]="language === lang.key ? '#fff' : 'var(--text-secondary)'"
-                      [style.borderColor]="language === lang.key ? 'var(--primary)' : 'var(--border-color)'"
-                      class="setting-btn" style="font-size: 11px;">
-                {{ lang.label }}
-              </button>
-            </div>
-          </div>
-
-          <!-- 4. Accent Color Swatches -->
-          <div>
-            <div class="setting-label">{{ t('settingsAccentColor') }}</div>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <button *ngFor="let c of accentColors"
-                      (click)="setAccentColor(c)" [title]="c.name"
-                      [style.background]="c.value"
-                      [style.boxShadow]="selectedAccent === c.value ? '0 0 0 3px ' + c.value + '60, 0 0 0 2px #fff inset' : 'none'"
-                      style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                <span *ngIf="selectedAccent === c.value" style="color: #fff; font-size: 14px; font-weight: 900;">✓</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- 5. Slider A: Navbar / Sidebar tint intensity -->
-          <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <div class="setting-label" style="margin: 0;">{{ t('settingsNavbarColor') }}</div>
-              <span style="font-size: 11px; font-weight: 700; color: var(--primary);">{{ navbarTintIntensity }}%</span>
-            </div>
-            <div style="height: 7px; border-radius: 10px; margin-bottom: 7px; border: 1px solid var(--border-color);"
-                 [style.background]="'linear-gradient(90deg, var(--bg-secondary) 0%, ' + selectedAccent + ' 100%)'">
-            </div>
-            <input type="range" min="0" max="100" step="5"
-                   [(ngModel)]="navbarTintIntensity"
-                   (input)="onNavbarTintChange()"
-                   class="color-slider" [style.accentColor]="selectedAccent" />
-            <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 2px; font-weight: 600;">
-              <span>{{ t('settingsNavNone') }}</span><span>{{ t('settingsNavLight') }}</span><span>{{ t('settingsNavFull') }}</span>
-            </div>
-          </div>
-
-          <!-- 6. Slider B: Button / Primary color brightness -->
-          <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <div class="setting-label" style="margin: 0;">{{ t('settingsButtonTone') }}</div>
-              <span style="font-size: 11px; font-weight: 700; color: var(--primary);">{{ buttonBrightness }}%</span>
-            </div>
-            <div style="height: 7px; border-radius: 10px; margin-bottom: 7px; border: 1px solid var(--border-color);"
-                 [style.background]="'linear-gradient(90deg, #111827 0%, ' + selectedAccent + ' 50%, #f8fafc 100%)'">
-            </div>
-            <input type="range" min="0" max="100" step="5"
-                   [(ngModel)]="buttonBrightness"
-                   (input)="onButtonBrightnessChange()"
-                   class="color-slider" [style.accentColor]="selectedAccent" />
-            <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 2px; font-weight: 600;">
-              <span>{{ t('settingsDarker') }}</span><span>{{ t('settingsNormal') }}</span><span>{{ t('settingsLighter') }}</span>
-            </div>
-          </div>
-
-          <!-- Footer status -->
-          <div style="font-size: 10px; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 8px;">
-            {{ getLanguageLabel() }} · {{ theme === 'dark' ? '🌙 Dark' : '☀️ Light' }} · {{ fontSize }} size
-          </div>
-
-        </div>
       </div>
     </header>
 
@@ -605,6 +480,109 @@
         <span *ngIf="permissionSaving">Saving...</span>
       </button>
     </div>
+
+  </div>
+</div>
+
+<!-- ══ GLOBAL APP SETTINGS MODAL OVERLAY (Root Level - 100% High Visibility) ══ -->
+<div *ngIf="showSettings" class="modal-backdrop animated-fade-in"
+     (click)="showSettings = false"
+     style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 16px;">
+
+  <div class="modal-card glass-panel" (click)="$event.stopPropagation()"
+       style="width: 100%; max-width: 420px; background: var(--bg-secondary); border-radius: 20px; border: 2px solid var(--primary); box-shadow: 0 25px 60px rgba(0,0,0,0.35); padding: 22px; max-height: 85vh; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;">
+
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid var(--border-color); padding-bottom: 12px;">
+      <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+        ⚙️ {{ t('appSettings') }}
+      </h3>
+      <button (click)="showSettings = false"
+              style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 16px; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; justify-content: center;">
+        ✕
+      </button>
+    </div>
+
+    <!-- 1. Theme -->
+    <div>
+      <div class="setting-label">{{ t('settingsTheme') }}</div>
+      <div style="display: flex; gap: 10px;">
+        <button (click)="toggleTheme()" [disabled]="theme === 'light'"
+                [style.background]="theme === 'light' ? 'var(--primary)' : 'var(--bg-primary)'"
+                [style.color]="theme === 'light' ? '#fff' : 'var(--text-secondary)'"
+                [style.borderColor]="theme === 'light' ? 'var(--primary)' : 'var(--border-color)'"
+                class="setting-btn" style="height: 40px; border-radius: 10px; font-size: 13px;">
+          {{ t('settingsLight') }}
+        </button>
+        <button (click)="toggleTheme()" [disabled]="theme === 'dark'"
+                [style.background]="theme === 'dark' ? 'var(--primary)' : 'var(--bg-primary)'"
+                [style.color]="theme === 'dark' ? '#fff' : 'var(--text-secondary)'"
+                [style.borderColor]="theme === 'dark' ? 'var(--primary)' : 'var(--border-color)'"
+                class="setting-btn" style="height: 40px; border-radius: 10px; font-size: 13px;">
+          {{ t('settingsDark') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Font Size -->
+    <div>
+      <div class="setting-label">{{ t('settingsFontSize') }}</div>
+      <div style="display: flex; gap: 6px;">
+        <button *ngFor="let sz of [{key:'small',label:'S — Small'},{key:'medium',label:'M — Normal'},{key:'large',label:'L — Large'},{key:'xlarge',label:'XL'}]"
+                (click)="setFontSize($any(sz.key))"
+                [style.background]="fontSize === sz.key ? 'var(--primary)' : 'var(--bg-primary)'"
+                [style.color]="fontSize === sz.key ? '#fff' : 'var(--text-secondary)'"
+                [style.borderColor]="fontSize === sz.key ? 'var(--primary)' : 'var(--border-color)'"
+                class="setting-btn" style="height: 36px; border-radius: 8px; font-size: 11px; white-space: nowrap;">
+          {{ sz.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. Language -->
+    <div>
+      <div class="setting-label">{{ t('settingsLanguage') }}</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <button *ngFor="let langItem of [{key:'english',label:'English 🇬🇧'},{key:'marathi',label:'मराठी 🇮🇳'},{key:'kannada',label:'ಕನ್ನಡ 🇮🇳'},{key:'hindi',label:'हिन्दी 🇮🇳'}]"
+                (click)="setLanguage($any(langItem.key))"
+                [style.background]="language === langItem.key ? 'var(--primary)' : 'var(--bg-primary)'"
+                [style.color]="language === langItem.key ? '#fff' : 'var(--text-secondary)'"
+                [style.borderColor]="language === langItem.key ? 'var(--primary)' : 'var(--border-color)'"
+                class="setting-btn" style="height: 38px; border-radius: 10px; font-size: 12.5px;">
+          {{ langItem.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. Accent Color Swatches -->
+    <div>
+      <div class="setting-label">{{ t('settingsAccentColor') }}</div>
+      <div style="display: flex; gap: 10px; justify-content: space-between; padding: 2px 0;">
+        <button *ngFor="let c of accentColors"
+                (click)="setAccentColor(c)" [title]="c.name"
+                [style.background]="c.value"
+                [style.boxShadow]="selectedAccent === c.value ? '0 0 0 3px ' + c.value + '60, 0 0 0 2px #fff inset' : 'none'"
+                style="width: 36px; height: 36px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+          <span *ngIf="selectedAccent === c.value" style="color: #fff; font-size: 15px; font-weight: 900;">✓</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 5. Navbar Tint Intensity Slider -->
+    <div style="background: var(--bg-primary); border: 1.5px solid var(--border-color); border-radius: 10px; padding: 10px 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <div class="setting-label" style="margin: 0;">{{ t('settingsNavbarColor') }}</div>
+        <span style="font-size: 11px; font-weight: 700; color: var(--primary);">{{ navbarTintIntensity }}%</span>
+      </div>
+      <input type="range" min="0" max="100" step="5"
+             [(ngModel)]="navbarTintIntensity"
+             (input)="onNavbarTintChange()"
+             class="color-slider" [style.accentColor]="selectedAccent" />
+    </div>
+
+    <button (click)="showSettings = false" class="btn btn-primary" style="width: 100%; height: 42px; font-size: 14px; font-weight: 700; border-radius: 10px; margin-top: 4px;">
+      ✓ Done
+    </button>
 
   </div>
 </div>
