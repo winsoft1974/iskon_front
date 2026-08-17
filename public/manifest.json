@@ -20,5 +20,35 @@
       "type": "image/webp",
       "purpose": "any maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "QR स्कॅनर उघडा",
+      "short_name": "QR Scanner",
+      "description": "Open Check-in QR Scanner",
+      "url": "/operations?tab=CheckinScanner",
+      "icons": [{ "src": "icon.webp", "sizes": "192x192" }]
+    },
+    {
+      "name": "यात्री शोधा",
+      "short_name": "Search Yatris",
+      "description": "Search Pilgrims Directory",
+      "url": "/yatris",
+      "icons": [{ "src": "icon.webp", "sizes": "192x192" }]
+    },
+    {
+      "name": "नवीन यात्री नोंदणी",
+      "short_name": "Add Yatri",
+      "description": "Register New Pilgrim",
+      "url": "/yatris?action=add",
+      "icons": [{ "src": "icon.webp", "sizes": "192x192" }]
+    },
+    {
+      "name": "बस सीट ट्रॅकर",
+      "short_name": "Bus Tracker",
+      "description": "Transit Bus Seat Layout",
+      "url": "/transit",
+      "icons": [{ "src": "icon.webp", "sizes": "192x192" }]
+    }
   ]
 }

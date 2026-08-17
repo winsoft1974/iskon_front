@@ -363,6 +363,40 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ── PWA Mobile App Install Prompt State & Logic ──
+  deferredPrompt: any = null;
+  showInstallBanner = false;
+
+  @HostListener('window:beforeinstallprompt', ['$event'])
+  onBeforeInstallPrompt(e: Event) {
+    e.preventDefault();
+    this.deferredPrompt = e;
+    const dismissed = localStorage.getItem('app_install_dismissed');
+    // Show banner if not standalone and not recently dismissed within 24h
+    if (!window.matchMedia('(display-mode: standalone)').matches && (!dismissed || Date.now() - Number(dismissed) > 86400000)) {
+      this.showInstallBanner = true;
+    }
+  }
+
+  installApp() {
+    if (this.deferredPrompt) {
+      this.deferredPrompt.prompt();
+      this.deferredPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === 'accepted') {
+          this.showInstallBanner = false;
+        }
+        this.deferredPrompt = null;
+      });
+    } else {
+      alert('मोबाईलवर ॲप इन्स्टॉल करण्यासाठी ब्राऊझर मेनूमधील "Add to Home Screen" किंवा "Install App" वर क्लिक करा.');
+    }
+  }
+
+  dismissInstallBanner() {
+    this.showInstallBanner = false;
+    localStorage.setItem('app_install_dismissed', Date.now().toString());
+  }
+
   toggleSettingsPanel(event: MouseEvent) {
     event.stopPropagation();
     event.preventDefault();
