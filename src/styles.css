@@ -403,9 +403,14 @@ label {
 
   /* Header mobile adjustment */
   .app-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 500 !important;
     padding: 10px 14px !important;
     min-height: 56px !important;
     gap: 8px !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
   }
 
   .active-tour-wrapper {
