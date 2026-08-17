@@ -1,0 +1,598 @@
+<div style="display: flex; height: 100vh; overflow: clip; background: var(--bg-primary);">
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div *ngIf="isMobileMenuOpen && !isLoginPage" class="sidebar-backdrop" (click)="closeMobileMenu()"></div>
+
+  <!-- Sidebar (Hidden on Login page) -->
+  <aside *ngIf="!isLoginPage" class="glass-panel app-sidebar" [class.mobile-open]="isMobileMenuOpen" style="width: 260px; height: 100%; border-radius: 0; border: none; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 24px 16px; background: linear-gradient(180deg, var(--sidebar-accent-bg, rgba(79,70,229,0.10)) 0%, var(--bg-secondary) 100%); z-index: 100;">
+
+    <!-- Logo Section -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; padding: 0 8px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <img src="icon.webp" alt="ISCON Yatra Logo"
+             style="width: 42px; height: 42px; border-radius: 10px; object-fit: contain; background: #fff; padding: 3px; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);" />
+        <div>
+          <h2 style="font-size: 17px; font-weight: 700; letter-spacing: -0.5px; color: var(--text-primary);">ISCON Yatra</h2>
+          <p style="font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase;">Management Portal</p>
+        </div>
+      </div>
+      <!-- Close drawer button for mobile -->
+      <button class="mobile-close-btn" (click)="closeMobileMenu()">✕</button>
+    </div>    <!-- Navigation Links (translated) -->
+    <nav style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+      <a *ngIf="!isVolunteer" routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileMenu()" class="sidebar-link">
+        <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path>
+        </svg>
+        <span>{{ t('dashboard') }}</span>
+      </a>
+
+      <a *ngIf="!isVolunteer" routerLink="/yatris" routerLinkActive="active" (click)="closeMobileMenu()" class="sidebar-link">
+        <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        <span>{{ t('pilgrims') }}</span>
+      </a>
+
+      <a *ngIf="!isVolunteer" routerLink="/packages" routerLinkActive="active" (click)="closeMobileMenu()" class="sidebar-link">
+        <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+        </svg>
+        <span>{{ t('packages') }}</span>
+      </a>
+
+      <a *ngIf="!isVolunteer && auth.hasPermission('Accommodation', 'view')" routerLink="/hotels" routerLinkActive="active" (click)="closeMobileMenu()" class="sidebar-link">
+        <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+        </svg>
+        <span>{{ t('ashram') }}</span>
+      </a>
+
+      <a *ngIf="!isVolunteer && auth.hasPermission('Transport', 'view')" routerLink="/transit" routerLinkActive="active" (click)="closeMobileMenu()" class="sidebar-link">
+        <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+        </svg>
+        <span>{{ t('transit') }}</span>
+      </a>
+
+      <a routerLink="/operations" routerLinkActive="active" (click)="closeMobileMenu()" class="sidebar-link">
+        <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+
+        </svg>
+        <span>{{ isVolunteer ? '💸 Operations & Expenses' : t('operations') }}</span>
+      </a>
+
+      <a *ngIf="isKasAuthority" routerLink="/users" routerLinkActive="active" (click)="closeMobileMenu()" class="sidebar-link">
+        <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 100 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+        </svg>
+        <span>User Management</span>
+      </a>
+    </nav>
+  </aside>
+
+
+  <!-- Main Content Wrapper -->
+  <div style="flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden;">
+    <!-- Top Header (Hidden on Login page) -->
+    <header *ngIf="!isLoginPage" class="glass-panel app-header" style="min-height: 64px; border-radius: 0; border: none; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: linear-gradient(90deg, var(--header-accent-bg, rgba(79,70,229,0.06)) 0%, var(--bg-secondary) 60%); flex-wrap: wrap; gap: 12px;">
+
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <!-- Mobile Menu Hamburger Button -->
+        <button class="mobile-menu-btn" (click)="toggleMobileMenu()" title="Toggle Menu">
+          <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+
+        <!-- Global Package Dropdown -->
+        <div class="active-tour-wrapper" style="display: flex; align-items: center; gap: 8px; border-left: 1px solid var(--border-color); padding-left: 16px;">
+          <svg style="width: 14px; height: 14px; color: var(--primary); flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+          </svg>
+          <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">{{ t('activeTour') }}</span>
+          <select [ngModel]="selectedPackageId" (ngModelChange)="onPackageChange($event)"
+                  [disabled]="packages.length === 0 || !isKasAuthority"
+                  style="min-width: 200px; max-width: 280px; padding: 7px 12px; font-size: 13px; font-weight: 600; border-radius: 8px; background: var(--bg-primary); border: 1.5px solid var(--primary); color: var(--text-primary); outline: none; cursor: pointer;">
+            <option *ngIf="isKasAuthority" value="">{{ packages.length === 0 ? t('loading') : t('allPackages') }}</option>
+            <option *ngFor="let pkg of packages" [value]="pkg.id">{{ pkg.name }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- User profile + Settings -->
+      <div style="display: flex; align-items: center; gap: 12px; position: relative;">
+        <div style="text-align: right;">
+          <p style="font-size: 13px; font-weight: 600; color: var(--text-primary);">{{ currentFullName }}</p>
+          <p style="font-size: 11px; color: var(--text-muted);">{{ roleBadge }}</p>
+        </div>
+        <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 15px;">
+          {{ currentFullName.charAt(0).toUpperCase() }}
+        </div>
+
+        <!-- User Management Header Button (KasAuthority only) -->
+        <button *ngIf="isKasAuthority"
+                routerLink="/users"
+                style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1.5px solid #6366f1; background: rgba(99,102,241,0.12); color: #6366f1; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.2s;"
+                title="User Accounts Management">
+          👤 Users
+        </button>
+
+        <!-- Role Permission Matrix Header Icon (KasAuthority only) -->
+        <button *ngIf="isKasAuthority"
+                (click)="openPermissionModal()"
+                style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1.5px solid #10b981; background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.2s;"
+                title="Manage Role & Department Checkbox Permissions">
+          🛡️ Role Matrix
+        </button>
+
+        <!-- Settings Button -->
+        <button id="settings-btn"
+
+                (click)="showSettings = !showSettings; $event.stopPropagation()"
+                style="width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--bg-primary); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px;"
+                title="Settings">
+          ⚙️
+        </button>
+
+        <!-- Logout Button -->
+        <button id="logout-btn"
+                (click)="logout()"
+                style="width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); color: #ef4444; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: all 0.2s;"
+                title="Logout"
+                onmouseover="this.style.background='rgba(239,68,68,0.15)'"
+                onmouseout="this.style.background='rgba(239,68,68,0.06)'">
+          🚪
+        </button>
+
+        <!-- ══ Settings Dropdown Panel ══ -->
+        <div *ngIf="showSettings"
+             id="settings-panel"
+             (click)="$event.stopPropagation()"
+             style="position: absolute; top: 48px; right: 0; z-index: 9999; width: 330px; background: var(--bg-secondary); border: 1.5px solid var(--border-color); border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.18); padding: 16px; display: flex; flex-direction: column; gap: 13px; overflow-y: auto; max-height: 92vh; animation: fadeIn 0.2s ease;">
+
+          <!-- Header -->
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0;">⚙️ {{ t('appSettings') }}</h3>
+            <button (click)="showSettings = false" style="background: transparent; border: none; cursor: pointer; font-size: 16px; color: var(--text-muted);">✕</button>
+          </div>
+          <div style="border-top: 1px solid var(--border-color);"></div>
+
+          <!-- 1. Theme -->
+          <div>
+            <div class="setting-label">{{ t('settingsTheme') }}</div>
+            <div style="display: flex; gap: 8px;">
+              <button (click)="toggleTheme()" [disabled]="theme === 'light'"
+                      [style.background]="theme === 'light' ? 'var(--primary)' : 'var(--bg-primary)'"
+                      [style.color]="theme === 'light' ? '#fff' : 'var(--text-secondary)'"
+                      [style.borderColor]="theme === 'light' ? 'var(--primary)' : 'var(--border-color)'"
+                      class="setting-btn">
+                {{ t('settingsLight') }}
+              </button>
+              <button (click)="toggleTheme()" [disabled]="theme === 'dark'"
+                      [style.background]="theme === 'dark' ? 'var(--primary)' : 'var(--bg-primary)'"
+                      [style.color]="theme === 'dark' ? '#fff' : 'var(--text-secondary)'"
+                      [style.borderColor]="theme === 'dark' ? 'var(--primary)' : 'var(--border-color)'"
+                      class="setting-btn">
+                {{ t('settingsDark') }}
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Font Size -->
+          <div>
+            <div class="setting-label">{{ t('settingsFontSize') }}</div>
+            <div style="display: flex; gap: 6px;">
+              <button *ngFor="let sz of [{key:'small',label:'S — Small'},{key:'medium',label:'M — Normal'},{key:'large',label:'L — Large'},{key:'xlarge',label:'XL'}]"
+                      (click)="setFontSize($any(sz.key))"
+                      [style.background]="fontSize === sz.key ? 'var(--primary)' : 'var(--bg-primary)'"
+                      [style.color]="fontSize === sz.key ? '#fff' : 'var(--text-secondary)'"
+                      [style.borderColor]="fontSize === sz.key ? 'var(--primary)' : 'var(--border-color)'"
+                      class="setting-btn" style="font-size: 10px; white-space: nowrap;">
+                {{ sz.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Language -->
+          <div>
+            <div class="setting-label">{{ t('settingsLanguage') }}</div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button *ngFor="let lang of [{key:'english',label:'English'},{key:'marathi',label:'मराठी'},{key:'kannada',label:'ಕನ್ನಡ'},{key:'hindi',label:'हिन्दी'}]"
+                      (click)="setLanguage($any(lang.key))"
+                      [style.background]="language === lang.key ? 'var(--primary)' : 'var(--bg-primary)'"
+                      [style.color]="language === lang.key ? '#fff' : 'var(--text-secondary)'"
+                      [style.borderColor]="language === lang.key ? 'var(--primary)' : 'var(--border-color)'"
+                      class="setting-btn" style="font-size: 11px;">
+                {{ lang.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- 4. Accent Color Swatches -->
+          <div>
+            <div class="setting-label">{{ t('settingsAccentColor') }}</div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button *ngFor="let c of accentColors"
+                      (click)="setAccentColor(c)" [title]="c.name"
+                      [style.background]="c.value"
+                      [style.boxShadow]="selectedAccent === c.value ? '0 0 0 3px ' + c.value + '60, 0 0 0 2px #fff inset' : 'none'"
+                      style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                <span *ngIf="selectedAccent === c.value" style="color: #fff; font-size: 14px; font-weight: 900;">✓</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 5. Slider A: Navbar / Sidebar tint intensity -->
+          <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <div class="setting-label" style="margin: 0;">{{ t('settingsNavbarColor') }}</div>
+              <span style="font-size: 11px; font-weight: 700; color: var(--primary);">{{ navbarTintIntensity }}%</span>
+            </div>
+            <div style="height: 7px; border-radius: 10px; margin-bottom: 7px; border: 1px solid var(--border-color);"
+                 [style.background]="'linear-gradient(90deg, var(--bg-secondary) 0%, ' + selectedAccent + ' 100%)'">
+            </div>
+            <input type="range" min="0" max="100" step="5"
+                   [(ngModel)]="navbarTintIntensity"
+                   (input)="onNavbarTintChange()"
+                   class="color-slider" [style.accentColor]="selectedAccent" />
+            <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 2px; font-weight: 600;">
+              <span>{{ t('settingsNavNone') }}</span><span>{{ t('settingsNavLight') }}</span><span>{{ t('settingsNavFull') }}</span>
+            </div>
+          </div>
+
+          <!-- 6. Slider B: Button / Primary color brightness -->
+          <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <div class="setting-label" style="margin: 0;">{{ t('settingsButtonTone') }}</div>
+              <span style="font-size: 11px; font-weight: 700; color: var(--primary);">{{ buttonBrightness }}%</span>
+            </div>
+            <div style="height: 7px; border-radius: 10px; margin-bottom: 7px; border: 1px solid var(--border-color);"
+                 [style.background]="'linear-gradient(90deg, #111827 0%, ' + selectedAccent + ' 50%, #f8fafc 100%)'">
+            </div>
+            <input type="range" min="0" max="100" step="5"
+                   [(ngModel)]="buttonBrightness"
+                   (input)="onButtonBrightnessChange()"
+                   class="color-slider" [style.accentColor]="selectedAccent" />
+            <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 2px; font-weight: 600;">
+              <span>{{ t('settingsDarker') }}</span><span>{{ t('settingsNormal') }}</span><span>{{ t('settingsLighter') }}</span>
+            </div>
+          </div>
+
+          <!-- Footer status -->
+          <div style="font-size: 10px; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 8px;">
+            {{ getLanguageLabel() }} · {{ theme === 'dark' ? '🌙 Dark' : '☀️ Light' }} · {{ fontSize }} size
+          </div>
+
+        </div>
+      </div>
+    </header>
+
+    <!-- Offline & Sync Banners -->
+    <div *ngIf="isOffline" style="background: rgba(239, 68, 68, 0.9); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(239, 68, 68, 0.2); padding: 10px 24px; color: white; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; z-index: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 16px;">📶❌</span>
+        <span>
+          {{ language === 'marathi' ? 'ऑफलाईन मोड — बदल सेव्ह होत आहेत व इंटरनेट आल्यावर सिंक होतील.' : 
+             (language === 'kannada' ? 'ಆಫ್‌ಲೈನ್ ಮೋಡ್ — ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಲಾಗುತ್ತಿದೆ, ಇಂಟರ್ನೆಟ್ ಬಂದಾಗ ಸಿಂಕ್ ಆಗುತ್ತದೆ.' : 
+             'Offline Mode — Changes are saved locally and will sync when online.') }}
+          <span *ngIf="getOfflineQueueLength() > 0" style="background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 6px; font-weight: 700;">
+            {{ getOfflineQueueLength() }} Pending
+          </span>
+        </span>
+      </div>
+      <button class="btn btn-outline" style="border-color: white; color: white; padding: 4px 12px; font-size: 11px; font-weight: 700; background: transparent; cursor: pointer;" (click)="forceSync()">
+        Sync Now
+      </button>
+    </div>
+
+    <div *ngIf="!isOffline && isSyncing" style="background: rgba(59, 130, 246, 0.9); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(59, 130, 246, 0.2); padding: 10px 24px; color: white; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; z-index: 500;">
+      <div style="width: 14px; height: 14px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      <span>
+        {{ language === 'marathi' ? 'माहिती सर्व्हरशी सिंक होत आहे...' : 
+           (language === 'kannada' ? 'ಮಾಹಿತಿಯನ್ನು ಸರ್ವರ್‌ನೊಂದಿಗೆ ಸಿಂಕ್ ಮಾಡಲಾಗುತ್ತಿದೆ...' : 
+           'Synchronizing changes with server...') }}
+      </span>
+    </div>
+
+    <!-- Page Outlet -->
+    <main style="flex: 1; overflow-y: auto;">
+      <router-outlet></router-outlet>
+    </main>
+
+    <!-- 🎙️ VOICE CHATBOT AI WIDGET (Hidden on Login page) -->
+    <div *ngIf="!isLoginPage" style="position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; font-family: sans-serif;">
+
+      
+      <!-- Expanded Chatbox Window -->
+      <div *ngIf="showChatbot" class="glass-panel animated-fade-in"
+           style="width: 320px; height: 420px; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border: 1.5px solid var(--border-color); border-radius: 16px; box-shadow: 0 12px 36px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; border-top: 4px solid var(--primary);">
+        
+        <!-- Header -->
+        <div style="background: rgba(255,255,255,0.9); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px;">🤖</span>
+            <div style="text-align: left;">
+              <div style="font-size: 13px; font-weight: 800; color: var(--text-primary); margin: 0; line-height: 1.2;">Yatra Helper AI</div>
+              <div style="font-size: 9px; color: var(--secondary); font-weight: 700; margin: 0; line-height: 1.1;">ONLINE · VOICE READY</div>
+            </div>
+          </div>
+          <button (click)="toggleChatbot()" style="border: none; background: transparent; cursor: pointer; font-size: 15px; color: var(--text-muted);">✕</button>
+        </div>
+
+        <!-- Chat messages container -->
+        <div id="chatbot-body" style="flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.01); text-align: left;">
+          <div *ngFor="let msg of chatbotMessages" 
+               [style.align-self]="msg.sender === 'user' ? 'flex-end' : 'flex-start'"
+               [style.background]="msg.sender === 'user' ? 'var(--primary)' : '#ffffff'"
+               [style.color]="msg.sender === 'user' ? '#ffffff' : 'var(--text-primary)'"
+               [style.border-color]="msg.sender === 'user' ? 'var(--primary)' : 'var(--border-color)'"
+               [style.border-radius]="msg.sender === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px'"
+               style="max-width: 82%; padding: 8px 12px; font-size: 12px; line-height: 1.4; border: 1px solid; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+            {{ msg.text }}
+          </div>
+        </div>
+
+        <!-- Input Bar with voice/mic button -->
+        <div style="padding: 10px; background: rgba(255,255,255,0.9); border-top: 1px solid var(--border-color); display: flex; gap: 8px; align-items: center;">
+          <input type="text" [(ngModel)]="chatbotInput" (keydown.enter)="submitChatbotQuery()"
+                 placeholder="Type your question..." 
+                 style="flex: 1; font-size: 12px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-primary); min-width: 0;" />
+          
+          <!-- Mic Speak Trigger Button -->
+          <button (click)="toggleSpeechListening()"
+                  [style.background]="isListening ? 'var(--accent-rose)' : 'var(--primary)'"
+                  style="border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;"
+                  [title]="isListening ? 'Listening... Click to stop' : 'Click to speak'">
+            <span *ngIf="!isListening" style="font-size: 14px;">🎙️</span>
+            <span *ngIf="isListening" style="width: 8px; height: 8px; border-radius: 50%; background: #ffffff; animation: pulse 0.8s infinite alternate;"></span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Rounded Floating Circle Icon -->
+      <button (click)="toggleChatbot()"
+              style="width: 50px; height: 50px; border-radius: 50%; background: var(--primary); border: none; box-shadow: 0 6px 16px rgba(0,0,0,0.18); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s;"
+              onmouseover="this.style.transform='scale(1.08)'"
+              onmouseout="this.style.transform='scale(1)'">
+        <span style="font-size: 24px; color: #ffffff;">🤖</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation Dock -->
+  <div class="mobile-bottom-dock">
+    <a routerLink="/dashboard" routerLinkActive="active" class="dock-item">
+      <span class="dock-icon">📊</span>
+      <span class="dock-label">{{ t('dashboard') }}</span>
+    </a>
+    <a routerLink="/yatris" routerLinkActive="active" class="dock-item">
+      <span class="dock-icon">👥</span>
+      <span class="dock-label">{{ t('pilgrims') }}</span>
+    </a>
+    <a routerLink="/packages" routerLinkActive="active" class="dock-item">
+      <span class="dock-icon">📦</span>
+      <span class="dock-label">{{ t('packages') }}</span>
+    </a>
+    <a routerLink="/hotels" routerLinkActive="active" class="dock-item">
+      <span class="dock-icon">🏨</span>
+      <span class="dock-label">{{ t('ashram') }}</span>
+    </a>
+    <a routerLink="/transit" routerLinkActive="active" class="dock-item">
+      <span class="dock-icon">🚌</span>
+      <span class="dock-label">{{ t('transit') }}</span>
+    </a>
+    <a routerLink="/operations" routerLinkActive="active" class="dock-item">
+      <span class="dock-icon">⚙️</span>
+      <span class="dock-label">{{ t('operations') }}</span>
+    </a>
+  </div>
+</div>
+
+<style>
+.sidebar-link {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  color: var(--text-secondary); text-decoration: none; font-size: 14px;
+  font-weight: 500; border-radius: 8px; transition: var(--transition);
+}
+.sidebar-link:hover { background: var(--sidebar-accent-bg, rgba(79,70,229,0.06)); color: var(--text-primary); }
+.sidebar-link.active {
+  background: var(--sidebar-active-bg, rgba(79,70,229,0.15));
+  color: var(--primary);
+  border: 1px solid var(--border-glow, rgba(79,70,229,0.15));
+}
+.setting-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 7px;
+}
+.setting-btn {
+  flex: 1; padding: 7px 4px; border: 1.5px solid;
+  border-radius: 7px; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.color-slider {
+  width: 100%; height: 4px; cursor: pointer; border: none;
+  background: transparent; padding: 0; outline: none;
+}
+@keyframes pulse {
+  to { transform: scale(1.4); opacity: 0.5; }
+}
+</style>
+
+<!-- ══ ROLE PERMISSIONS MATRIX MODAL DIALOG (Navbar Triggered) ══ -->
+<div *ngIf="showPermissionModal && isKasAuthority" class="modal-backdrop animated-fade-in"
+     (click)="closePermissionModal()"
+     style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
+  
+  <div class="modal-card glass-panel" (click)="$event.stopPropagation()"
+       style="width: 100%; max-width: 950px; background: var(--bg-secondary); border-radius: 16px; border: 1.5px solid var(--border-color); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); padding: 24px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
+    
+    <!-- Modal Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 16px;">
+      <div>
+        <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+          🛡️ Role & Department Checkbox Permission Matrix
+        </h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">
+          Select checkboxes to grant or restrict access for Service Incharge & Volunteer roles across departments.
+        </p>
+      </div>
+      <button (click)="closePermissionModal()"
+              style="background: transparent; border: none; font-size: 22px; cursor: pointer; color: var(--text-muted); line-height: 1;">
+        ✕
+      </button>
+    </div>
+
+    <!-- Alert Success Banner -->
+    <div *ngIf="permissionSuccessMsg" style="background: rgba(16,185,129,0.12); color: #10b981; padding: 12px 18px; border-radius: 10px; font-weight: 700; font-size: 14px; margin-bottom: 16px; border: 1px solid rgba(16,185,129,0.3);">
+      {{ permissionSuccessMsg }}
+    </div>
+
+    <!-- Checkbox Grid Table Body -->
+    <div style="overflow-y: auto; flex: 1; padding-right: 4px; margin-bottom: 16px;">
+
+      <!-- Member Selector Section -->
+      <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">
+          👤 Select Member (Ram, Shyam, Incharges)
+        </label>
+        <select [(ngModel)]="selectedMemberUsername" (change)="onMemberSelect()"
+                style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 2px solid var(--primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 15px; font-weight: 700; cursor: pointer;">
+          <option value="">-- Click here to Select Member (Ram, Shyam, Volunteers) --</option>
+          <option *ngFor="let u of systemUsers" [value]="u.username">
+            👤 {{ u.fullName }} ({{ u.role }} - {{ u.department }} Dept) {{ u.username ? '• @' + u.username : '' }}
+          </option>
+        </select>
+
+        <!-- Selected Member Info Card & Save Button -->
+        <div *ngIf="selectedMember" style="margin-top: 14px; background: var(--bg-secondary); border: 1px solid rgba(99,102,241,0.3); border-radius: 10px; padding: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <div style="font-size: 16px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+              <span>👤 {{ selectedMember.fullName }}</span>
+              <span style="font-size: 11px; background: rgba(99,102,241,0.15); color: #6366f1; padding: 2px 8px; border-radius: 6px; font-weight: 800;">
+                {{ selectedMember.role }}
+              </span>
+              <span style="font-size: 11px; background: rgba(16,185,129,0.15); color: #10b981; padding: 2px 8px; border-radius: 6px; font-weight: 800;">
+                🏢 {{ selectedMember.department }} Dept
+              </span>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+              <span *ngIf="selectedMember.hasUserAccount">Username: &#64;{{ selectedMember.username }}</span>
+              <span *ngIf="!selectedMember.hasUserAccount" style="color: #f59e0b; font-weight: 700;">⚠️ Volunteer Record (Saving will auto-create login account)</span>
+              <span *ngIf="selectedMember.phone"> • 📞 {{ selectedMember.phone }}</span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" (click)="saveMemberPermissions()" [disabled]="memberPermSaving"
+                  style="padding: 8px 18px; font-weight: 800; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; cursor: pointer; border-radius: 8px;">
+            <span *ngIf="!memberPermSaving">💾 Save {{ selectedMember.fullName }}'s Permissions</span>
+            <span *ngIf="memberPermSaving">Saving...</span>
+          </button>
+        </div>
+
+        <!-- Member Success Alert -->
+        <div *ngIf="memberPermSuccessMsg" style="margin-top: 10px; background: rgba(16,185,129,0.15); color: #10b981; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 13px; border: 1px solid rgba(16,185,129,0.3);">
+          {{ memberPermSuccessMsg }}
+        </div>
+
+        <!-- Member Checkbox Grid -->
+        <div *ngIf="selectedMember" style="overflow-x: auto; margin-top: 14px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: var(--bg-secondary);">
+                <th style="padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 800; color: var(--text-primary); border-bottom: 2px solid var(--border-color);">Selected Member</th>
+                <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🍲 Food</th>
+                <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🚌 Transport</th>
+                <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🏨 Accommodation</th>
+                <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🩺 Medical</th>
+                <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🛕 Religious</th>
+                <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🏢 General</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 12px 14px; font-weight: 800; font-size: 13px; color: var(--text-primary);">
+                  <div style="color: var(--primary); font-weight: 800; font-size: 14px;">👤 {{ selectedMember.fullName }}</div>
+                  <div style="font-size: 10px; color: var(--text-muted);">({{ selectedMember.role }} - {{ selectedMember.department }})</div>
+                </td>
+                <td *ngFor="let dept of permDepartments" style="padding: 10px 6px; text-align: center;">
+                  <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; background: var(--bg-secondary); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <label style="cursor: pointer; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 5px; user-select: none;">
+                      <input type="checkbox" [checked]="getMemberPermCell(dept).canView"
+                             (change)="toggleMemberPermCell(dept, 'canView')" style="width: 15px; height: 15px; cursor: pointer; accent-color: #10b981;" />
+                      <span [style.color]="getMemberPermCell(dept).canView ? '#10b981' : 'var(--text-muted)'">Can View</span>
+                    </label>
+                    <label style="cursor: pointer; font-size: 10px; font-weight: 600; display: flex; align-items: center; gap: 5px; user-select: none; color: var(--text-secondary);">
+                      <input type="checkbox" [checked]="getMemberPermCell(dept).canAddExpense"
+                             (change)="toggleMemberPermCell(dept, 'canAddExpense')" style="width: 13px; height: 13px; cursor: pointer; accent-color: #6366f1;" />
+                      <span>+ Expense</span>
+                    </label>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Role Default Grid Table -->
+      <div style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin-bottom: 10px;">
+        ⚙️ Default Role Permission Matrix (रोल नियमावली)
+      </div>
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: var(--bg-primary);">
+            <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 800; color: var(--text-primary); border-bottom: 2px solid var(--border-color);">Role / Authority</th>
+            <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🍲 Food</th>
+            <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🚌 Transport</th>
+            <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🏨 Accommodation</th>
+            <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🩺 Medical</th>
+            <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🛕 Religious</th>
+            <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🏢 General</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let role of permRoles" style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 14px 16px; font-weight: 800; font-size: 14px; color: var(--text-primary);">
+              <div *ngIf="role === 'ServiceIncharge'" style="color: #6366f1; font-weight: 800; font-size: 14px;">🧑‍💼 Service Incharge</div>
+              <div *ngIf="role === 'Volunteer'" style="color: #8b5cf6; font-weight: 800; font-size: 14px;">🙋 Volunteer</div>
+            </td>
+            <td *ngFor="let dept of permDepartments" style="padding: 12px 8px; text-align: center;">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; background: var(--bg-primary); padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border-color);">
+                
+                <label style="cursor: pointer; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; user-select: none;">
+                  <input type="checkbox" [checked]="getPermCell(role, dept).canView"
+                         (change)="togglePerm(role, dept, 'canView')" style="width: 16px; height: 16px; cursor: pointer; accent-color: #10b981;" />
+                  <span [style.color]="getPermCell(role, dept).canView ? '#10b981' : 'var(--text-muted)'">Can View</span>
+                </label>
+
+                <label style="cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px; user-select: none; color: var(--text-secondary);">
+                  <input type="checkbox" [checked]="getPermCell(role, dept).canAddExpense"
+                         (change)="togglePerm(role, dept, 'canAddExpense')" style="width: 14px; height: 14px; cursor: pointer; accent-color: #6366f1;" />
+                  <span>+ Expense</span>
+                </label>
+
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+      <button class="btn btn-outline" (click)="closePermissionModal()" [disabled]="permissionSaving" style="padding: 9px 20px; font-weight: 700;">
+        Close
+      </button>
+      <button class="btn btn-primary" (click)="savePermissionMatrix()" [disabled]="permissionSaving"
+              style="padding: 9px 24px; font-weight: 800; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; cursor: pointer;">
+        <span *ngIf="!permissionSaving">💾 Save Permission Matrix</span>
+        <span *ngIf="permissionSaving">Saving...</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+

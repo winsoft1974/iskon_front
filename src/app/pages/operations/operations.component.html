@@ -1,0 +1,2863 @@
+<div class="animated-fade-in" style="padding: 24px;">
+  <!-- Locked Banner for No Active/Upcoming Package -->
+  <div *ngIf="isEntryLocked" class="glass-panel" style="padding: 14px 20px; margin-bottom: 20px; border-left: 4px solid #ef4444; background: rgba(239,68,68,0.08); display: flex; align-items: center; justify-content: space-between; border-radius: 10px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 20px;">🔒</span>
+      <div>
+        <div style="font-size: 14px; font-weight: 700; color: #ef4444;">Operations & Financial Entries Locked</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">Please select an Active or Upcoming Tour Package in the navbar to add incomes, expenses, medical cases, or announcements. Only data viewing is permitted.</div>
+      </div>
+    </div>
+    <span class="badge badge-danger" style="font-size: 12px; padding: 4px 12px;">Locked Mode</span>
+  </div>
+
+  <!-- Header -->
+  <div style="margin-bottom: 24px;">
+    <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.5px;">{{ t('operationsTitle') }}</h1>
+  </div>
+
+  <div *ngIf="loading" style="display: flex; justify-content: center; align-items: center; height: 250px; flex-direction: column; gap: 12px;">
+    <div style="width: 32px; height: 32px; border: 3px solid var(--border-color); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <p style="color: var(--text-secondary); font-size: 14px;">{{ t('operationsLoading') }}</p>
+  </div>
+
+  <div *ngIf="!loading" class="animated-fade-in">
+    <!-- Horizontal Tab List -->
+    <div style="display: flex; border-bottom: 1px solid var(--border-color); gap: 24px; margin-bottom: 24px; overflow-x: auto; padding-bottom: 2px;">
+      <button (click)="setTab('announcements')" 
+              [style.color]="activeTab === 'announcements' ? 'var(--primary)' : 'var(--text-secondary)'"
+              [style.border-bottom]="activeTab === 'announcements' ? '2px solid var(--primary)' : 'none'"
+              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+        {{ t('Announcements') }}
+      </button>
+      <button (click)="setTab('volunteers')" 
+              [style.color]="activeTab === 'volunteers' ? 'var(--primary)' : 'var(--text-secondary)'"
+              [style.border-bottom]="activeTab === 'volunteers' ? '2px solid var(--primary)' : 'none'"
+              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+        {{ t('Volunteers') }}
+      </button>
+      <button (click)="setTab('incomes')" 
+              [style.color]="activeTab === 'incomes' ? 'var(--primary)' : 'var(--text-secondary)'"
+              [style.border-bottom]="activeTab === 'incomes' ? '2px solid var(--primary)' : 'none'"
+              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+        💰 {{ t('FinanceLedger') }}
+      </button>
+      <button (click)="setTab('scanner')" 
+              [style.color]="activeTab === 'scanner' ? 'var(--primary)' : 'var(--text-secondary)'"
+              [style.border-bottom]="activeTab === 'scanner' ? '2px solid var(--primary)' : 'none'"
+              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+        📷 {{ t('CheckinScanner') }}
+      </button>
+      <button *ngIf="auth.hasPermission('Food', 'view')" (click)="setTab('prasadam')" 
+              [style.color]="activeTab === 'prasadam' ? 'var(--primary)' : 'var(--text-secondary)'"
+              [style.border-bottom]="activeTab === 'prasadam' ? '2px solid var(--primary)' : 'none'"
+              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+        🍽️ {{ t('PrasadamTracker') }}
+      </button>
+      <button *ngIf="auth.hasPermission('Medical', 'view')" (click)="setTab('medical')" 
+              [style.color]="activeTab === 'medical' ? 'var(--primary)' : 'var(--text-secondary)'"
+              [style.border-bottom]="activeTab === 'medical' ? '2px solid var(--primary)' : 'none'"
+              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+        {{ t('MedicalIncidents') }}
+      </button>
+      <button *ngIf="auth.hasPermission('General', 'view')" (click)="setTab('lost')" 
+              [style.color]="activeTab === 'lost' ? 'var(--primary)' : 'var(--text-secondary)'"
+              [style.border-bottom]="activeTab === 'lost' ? '2px solid var(--primary)' : 'none'"
+              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+        {{ t('LostAndFound') }}
+      </button>
+      <button *ngIf="isKasAuthority" (click)="setTab('permissions'); loadPermissionMatrix()" 
+              [style.color]="activeTab === 'permissions' ? 'var(--primary)' : 'var(--text-secondary)'"
+              [style.border-bottom]="activeTab === 'permissions' ? '2px solid var(--primary)' : 'none'"
+              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 700; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+        ⚙️ Role Permissions Matrix
+      </button>
+      <button *ngIf="isKasAuthority" (click)="setTab('auditLogs')" 
+              [style.color]="activeTab === 'auditLogs' ? 'var(--primary)' : 'var(--text-secondary)'"
+              [style.border-bottom]="activeTab === 'auditLogs' ? '2px solid var(--primary)' : 'none'"
+              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 700; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+        📜 Audit Logs
+      </button>
+    </div>
+
+
+    <!-- Tab Panels (Delegated to Modular Sub-Components) -->
+    <app-announcements-tab *ngIf="activeTab === 'announcements'" [ops]="this"></app-announcements-tab>
+    <app-volunteers-tab *ngIf="activeTab === 'volunteers'" [ops]="this"></app-volunteers-tab>
+    <app-finance-ledger-tab *ngIf="activeTab === 'incomes'" [ops]="this"></app-finance-ledger-tab>
+    <app-checkin-scanner-tab *ngIf="activeTab === 'scanner'" [ops]="this"></app-checkin-scanner-tab>
+    <app-prasadam-tracker-tab *ngIf="activeTab === 'prasadam'" [ops]="this"></app-prasadam-tracker-tab>
+    <app-medical-incidents-tab *ngIf="activeTab === 'medical'" [ops]="this"></app-medical-incidents-tab>
+    <app-lost-found-tab *ngIf="activeTab === 'lost'" [ops]="this"></app-lost-found-tab>
+    <app-permissions-matrix-tab *ngIf="activeTab === 'permissions' && isKasAuthority" [ops]="this"></app-permissions-matrix-tab>
+
+    <!-- Audit Logs Panel -->
+    <div *ngIf="activeTab === 'auditLogs' && isKasAuthority" class="glass-panel animated-fade-in" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+          <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0;">📜 System Activity & Audit Trail</h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">Real-time security log of actions, changes, and modifications made across the system.</p>
+        </div>
+        <button class="btn btn-outline" (click)="loadData()" style="font-size: 12px; font-weight: 700;">🔄 Refresh Logs</button>
+      </div>
+
+      <div class="table-container" style="overflow-x: auto;">
+        <table class="custom-table" style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: var(--bg-primary);">
+              <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 13px;">Timestamp</th>
+              <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 13px;">User</th>
+              <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 13px;">Action</th>
+              <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 13px;">Module / Entity</th>
+              <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 13px;">Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of auditLogs" style="border-bottom: 1px solid var(--border-color);">
+              <td style="padding: 12px 16px; font-size: 12px; color: var(--text-muted);">{{ log.createdAt | date:'short' }}</td>
+              <td style="padding: 12px 16px; font-weight: 700; font-size: 13px; color: var(--text-primary);">👤 {{ log.username }}</td>
+              <td style="padding: 12px 16px;">
+                <span style="font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 6px;"
+                      [style.background]="log.action === 'CREATE' ? 'rgba(16,185,129,0.15)' : log.action === 'DELETE' ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)'"
+                      [style.color]="log.action === 'CREATE' ? '#10b981' : log.action === 'DELETE' ? '#ef4444' : '#6366f1'">
+                  {{ log.action }}
+                </span>
+              </td>
+              <td style="padding: 12px 16px; font-size: 13px; font-weight: 600; color: var(--text-secondary);">{{ log.entityName }} #{{ log.entityId || 'N/A' }}</td>
+              <td style="padding: 12px 16px; font-size: 12px; color: var(--text-secondary);">{{ log.details || '-' }}</td>
+            </tr>
+            <tr *ngIf="auditLogs.length === 0">
+              <td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">No audit log entries recorded yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+    <!-- ══ GIVE ADVANCE MODAL ══ -->
+    <div *ngIf="showAdvanceModal"
+         style="position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+      <div class="glass-panel" style="width: 100%; max-width: 400px; padding: 28px; background: var(--bg-secondary); border-top: 3px solid var(--primary); border-radius: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">💰 Give Advance</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">{{ selectedAdvanceVol?.name }} · {{ selectedAdvanceVol?.assignedDepartment }}</p>
+          </div>
+          <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showAdvanceModal = false">✕</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <label style="font-weight: 600; font-size: 13px;">Advance Amount (₹) <span style="color: var(--danger);">*</span></label>
+            <input type="number" [(ngModel)]="advanceGivenAmount" name="advanceAmt" min="0" placeholder="0.00"
+                   style="margin-top: 6px; font-size: 18px; font-weight: 700;" />
+          </div>
+          <div style="background: rgba(99,102,241,0.06); border-radius: 8px; padding: 12px; font-size: 13px; color: var(--text-secondary);">
+            <div>Advance: <strong style="color: var(--primary);">₹{{ advanceGivenAmount | number }}</strong></div>
+            <div>Expenses so far: <strong style="color: var(--danger);">₹{{ getVolunteerExpenses(selectedAdvanceVol?.id) | number }}</strong></div>
+            <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-color);">
+              Balance after: <strong [style.color]="(advanceGivenAmount - getVolunteerExpenses(selectedAdvanceVol?.id)) >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+                ₹{{ (advanceGivenAmount - getVolunteerExpenses(selectedAdvanceVol?.id)) | number }}
+              </strong>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+            <button type="button" class="btn btn-outline" (click)="showAdvanceModal = false">Cancel</button>
+            <button type="button" class="btn btn-primary" style="padding: 10px 24px; font-weight: 700;" (click)="saveAdvance()">💾 Save Advance</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TRANSFER ADVANCE MODAL ══ -->
+    <div *ngIf="showTransferModal"
+         style="position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+      <div class="glass-panel" style="width: 100%; max-width: 480px; padding: 28px; background: var(--bg-secondary); border-top: 3px solid var(--primary); border-radius: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">⇄ Advance Transfer</h2>
+            <p style="font-size: 12px; color: var(--text-muted);">Transfer advance from one volunteer to another</p>
+          </div>
+          <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showTransferModal = false">✕</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+
+          <!-- From Volunteer -->
+          <div style="position: relative;">
+            <label style="font-weight: 600; font-size: 13px;">From Volunteer (Sender) <span style="color: var(--danger);">*</span></label>
+            <div (click)="showTransferFromDropdown = !showTransferFromDropdown"
+                 style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #fff; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 13px;">
+              <span style="font-weight: 500; color: var(--text-primary);">
+                {{ transferFromVol ? transferFromVol.name + ' · ₹' + (volunteerAdvances[transferFromVol.id] || 0) + ' advance' : 'Select sender...' }}
+              </span>
+              <span style="font-size: 10px;">▼</span>
+            </div>
+            <div *ngIf="showTransferFromDropdown"
+                 style="position: absolute; left: 0; right: 0; top: 100%; background: #fff; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 1200; margin-top: 4px; padding: 8px;">
+              <input type="text" [(ngModel)]="transferFromSearch" name="tfFromSearch" placeholder="Search..."
+                     style="padding: 7px 10px; font-size: 12px; border-radius: 6px; margin-bottom: 4px;"
+                     (click)="$event.stopPropagation()" />
+              <div style="max-height: 150px; overflow-y: auto;">
+                <div *ngFor="let v of filteredTransferFrom" (click)="selectTransferFrom(v)"
+                     style="padding: 8px 10px; cursor: pointer; border-radius: 6px; font-size: 12px; display: flex; justify-content: space-between;"
+                     onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
+                  <span style="font-weight: 600;">{{ v.name }}</span>
+                  <span style="color: var(--primary); font-size: 11px;">₹{{ (volunteerAdvances[v.id] || 0) | number }} avail</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- To Volunteer -->
+          <div style="position: relative;">
+            <label style="font-weight: 600; font-size: 13px;">To Volunteer (Receiver) <span style="color: var(--danger);">*</span></label>
+            <div (click)="showTransferToDropdown = !showTransferToDropdown"
+                 style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #fff; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 13px;">
+              <span style="font-weight: 500; color: var(--text-primary);">
+                {{ transferToVol ? transferToVol.name + ' · ' + transferToVol.assignedDepartment : 'Select receiver...' }}
+              </span>
+              <span style="font-size: 10px;">▼</span>
+            </div>
+            <div *ngIf="showTransferToDropdown"
+                 style="position: absolute; left: 0; right: 0; top: 100%; background: #fff; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 1200; margin-top: 4px; padding: 8px;">
+              <input type="text" [(ngModel)]="transferToSearch" name="tfToSearch" placeholder="Search..."
+                     style="padding: 7px 10px; font-size: 12px; border-radius: 6px; margin-bottom: 4px;"
+                     (click)="$event.stopPropagation()" />
+              <div style="max-height: 150px; overflow-y: auto;">
+                <div *ngFor="let v of filteredTransferTo" (click)="selectTransferTo(v)"
+                     style="padding: 8px 10px; cursor: pointer; border-radius: 6px; font-size: 12px; display: flex; justify-content: space-between;"
+                     onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
+                  <span style="font-weight: 600;">{{ v.name }}</span>
+                  <span style="color: var(--text-muted); font-size: 11px;">{{ v.assignedDepartment }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Amount + Date -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label style="font-weight: 600; font-size: 13px;">Amount (₹) <span style="color: var(--danger);">*</span></label>
+              <input type="number" [(ngModel)]="newTransfer.amount" name="trAmount" min="1" placeholder="0"
+                     style="margin-top: 6px;" />
+            </div>
+            <div>
+              <label style="font-weight: 600; font-size: 13px;">Date</label>
+              <input type="date" [(ngModel)]="newTransfer.date" name="trDate" style="margin-top: 6px;" />
+            </div>
+          </div>
+
+          <!-- Note -->
+          <div>
+            <label style="font-weight: 600; font-size: 13px;">Note (Optional)</label>
+            <input type="text" [(ngModel)]="newTransfer.note" name="trNote" placeholder="e.g. Petrol money"
+                   style="margin-top: 6px;" />
+          </div>
+
+          <!-- Preview -->
+          <div *ngIf="transferFromVol && transferToVol && newTransfer.amount > 0"
+               style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 10px 14px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-weight: 700; color: var(--danger);">{{ transferFromVol.name }}</span>
+            <span style="color: var(--text-muted);">gives</span>
+            <span style="font-weight: 800; color: var(--primary);">₹{{ newTransfer.amount | number }}</span>
+            <span style="color: var(--text-muted);">to</span>
+            <span style="font-weight: 700; color: var(--secondary);">{{ transferToVol.name }}</span>
+          </div>
+
+          <!-- Buttons -->
+          <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+            <button type="button" class="btn btn-outline" (click)="showTransferModal = false">Cancel</button>
+            <button type="button" class="btn btn-primary" style="padding: 10px 22px; font-weight: 700;"
+                    [disabled]="!newTransfer.fromId || !newTransfer.toId || !newTransfer.amount"
+                    (click)="saveTransfer()">💾 Save Transfer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ VOLUNTEER LEDGER DETAILS MODAL ══ -->
+    <div *ngIf="showVolunteerExpensesModal && selectedVolunteerForDetails"
+         style="position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+      <div class="glass-panel" style="width: 100%; max-width: 750px; padding: 28px; background: var(--bg-secondary); border-top: 3px solid var(--primary); border-radius: 12px; max-height: 85vh; display: flex; flex-direction: column;">
+        
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+              <span>👤</span> Volunteer Finance Summary
+            </h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 3px;">
+              <strong>{{ selectedVolunteerForDetails.name }}</strong> · {{ selectedVolunteerForDetails.assignedDepartment }} · {{ selectedVolunteerForDetails.phone || 'No phone' }}
+            </p>
+          </div>
+          <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showVolunteerExpensesModal = false">✕</button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="table-scrollbar" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding-right: 4px;">
+          
+          <!-- Summary strip inside modal -->
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; flex-shrink: 0;">
+            <!-- Advance -->
+            <div style="background: rgba(99,102,241,0.06); border-radius: 8px; padding: 10px; border-left: 3px solid var(--primary); text-align: center;">
+              <div style="font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Advance Given</div>
+              <div style="font-size: 15px; font-weight: 800; color: var(--primary); margin-top: 2px;">₹{{ (volunteerAdvances[selectedVolunteerForDetails.id] || 0) | number }}</div>
+            </div>
+            <!-- Net Transfer -->
+            <div style="background: rgba(59,130,246,0.06); border-radius: 8px; padding: 10px; border-left: 3px solid #3B82F6; text-align: center;">
+              <div style="font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Net Transfers</div>
+              <div style="font-size: 15px; font-weight: 800; color: #2563EB; margin-top: 2px;">
+                {{ getVolunteerTransferBalance(selectedVolunteerForDetails.id) >= 0 ? '+' : '' }}₹{{ getVolunteerTransferBalance(selectedVolunteerForDetails.id) | number }}
+              </div>
+            </div>
+            <!-- Spent -->
+            <div style="background: rgba(239,68,68,0.06); border-radius: 8px; padding: 10px; border-left: 3px solid var(--danger); text-align: center;">
+              <div style="font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Total Spent</div>
+              <div style="font-size: 15px; font-weight: 800; color: var(--danger); margin-top: 2px;">₹{{ getVolunteerExpenses(selectedVolunteerForDetails.id) | number }}</div>
+            </div>
+            <!-- Balance -->
+            <div style="border-radius: 8px; padding: 10px; text-align: center;"
+                 [style.background]="getVolunteerBalance(selectedVolunteerForDetails.id) >= 0 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'"
+                 [style.border-left]="getVolunteerBalance(selectedVolunteerForDetails.id) >= 0 ? '3px solid var(--secondary)' : '3px solid var(--danger)'">
+              <div style="font-size: 9px; text-transform: uppercase; font-weight: 700;"
+                   [style.color]="getVolunteerBalance(selectedVolunteerForDetails.id) >= 0 ? 'var(--secondary)' : 'var(--danger)'">Net Balance</div>
+              <div style="font-size: 15px; font-weight: 800; margin-top: 2px;"
+                   [style.color]="getVolunteerBalance(selectedVolunteerForDetails.id) >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+                ₹{{ getVolunteerBalance(selectedVolunteerForDetails.id) | number }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Ledger Entries list -->
+          <div>
+            <h3 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+              <span>📜</span> Itemwise Expense & Transfer History
+            </h3>
+            
+            <!-- No entries state -->
+            <div *ngIf="getVolunteerLedger(selectedVolunteerForDetails.id).length === 0"
+                 style="text-align: center; color: var(--text-muted); font-size: 13px; font-style: italic; padding: 24px; border: 1px dashed var(--border-color); border-radius: 8px;">
+              No transactions recorded for this volunteer.
+            </div>
+
+            <!-- Ledger Table -->
+            <div *ngIf="getVolunteerLedger(selectedVolunteerForDetails.id).length > 0"
+                 style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-tertiary);">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                  <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
+                    <th style="text-align: left; padding: 10px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; width: 100px;">Date</th>
+                    <th style="text-align: left; padding: 10px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700;">Transaction Details / Items</th>
+                    <th style="text-align: right; padding: 10px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; width: 100px;">Amount</th>
+                    <th style="text-align: right; padding: 10px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; width: 120px;">Running Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <ng-container *ngFor="let entry of getVolunteerLedger(selectedVolunteerForDetails.id)">
+                    <!-- Ledger main row -->
+                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.04);"
+                        [style.background]="entry.type === 'expense' ? 'rgba(239,68,68,0.01)' : 'transparent'">
+                      <td style="padding: 10px 12px; color: var(--text-muted); font-size: 12px; white-space: nowrap; vertical-align: top;">
+                        {{ entry.date || '—' }}
+                      </td>
+                      <td style="padding: 10px 12px; vertical-align: top;">
+                        <!-- Label -->
+                        <div style="font-weight: 600;">
+                          <span *ngIf="entry.type === 'advance'" style="color: var(--primary);">💰 {{ entry.label }}</span>
+                          <span *ngIf="entry.type === 'transfer-in'" style="color: var(--secondary);">↗ {{ entry.label }}</span>
+                          <span *ngIf="entry.type === 'transfer-out'" style="color: #f59e0b;">↙ {{ entry.label }}</span>
+                          <span *ngIf="entry.type === 'expense'" style="color: var(--danger);">📤 {{ entry.label }}</span>
+                        </div>
+                        
+                        <!-- Items breakdown list -->
+                        <div *ngIf="entry.type === 'expense' && entry.items && entry.items.length > 0"
+                             style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; padding-left: 10px;">
+                          <span *ngFor="let it of entry.items"
+                                style="display: inline-flex; align-items: center; gap: 4px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.12); border-radius: 6px; padding: 3px 8px; font-size: 11px; color: var(--text-secondary);">
+                            <span style="font-weight: 600; color: var(--text-primary);">{{ it.item }}</span>
+                            <span style="color: var(--text-muted);">×{{ it.unit }}</span>
+                            <span style="color: var(--text-muted);">&#64;₹{{ it.unitPrice | number }}</span>
+                            <span style="font-weight: 700; color: var(--danger);">= ₹{{ (it.unit * it.unitPrice) | number }}</span>
+                          </span>
+                        </div>
+                      </td>
+                      <td style="padding: 10px 12px; text-align: right; font-weight: 700; white-space: nowrap; vertical-align: top;"
+                          [style.color]="entry.amount >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+                        {{ entry.amount >= 0 ? '+' : '' }}₹{{ entry.amount | number }}
+                      </td>
+                      <td style="padding: 10px 12px; text-align: right; font-weight: 800; white-space: nowrap; vertical-align: top;"
+                          [style.color]="entry.running >= 0 ? 'var(--secondary)' : 'var(--danger)'">
+                        ₹{{ entry.running | number }}
+                      </td>
+                    </tr>
+                  </ng-container>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 10px; flex-shrink: 0;">
+          <button class="btn btn-outline" style="padding: 8px 20px; font-weight: 600;" (click)="showVolunteerExpensesModal = false">Close</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ TRANSACTION VOUCHER DETAILS MODAL ══ -->
+    <div *ngIf="showVoucherModal && selectedVoucher"
+         class="modal-overlay"
+         (click)="showVoucherModal = false">
+      <div class="glass-panel" 
+           (click)="$event.stopPropagation()"
+           style="width: 100%; max-width: 480px; padding: 28px; background: var(--bg-secondary); border-top: 4px solid; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);"
+           [style.border-color]="selectedVoucher.kind === 'Income' ? 'var(--secondary)' : (selectedVoucher.kind === 'Transfer' ? '#2563EB' : 'var(--danger)')">
+        
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px dashed var(--border-color);">
+          <div>
+            <h2 style="font-size: 16px; font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em;">
+              🧾 Transaction Voucher
+            </h2>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+              Ref ID: {{ selectedVoucher.id }}
+            </p>
+          </div>
+          <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showVoucherModal = false">✕</button>
+        </div>
+
+        <!-- Voucher Content -->
+        <div>
+          <!-- Type Badge -->
+          <div style="margin-bottom: 16px;">
+            <span *ngIf="selectedVoucher.kind === 'Income'" class="badge" style="background: rgba(16,185,129,0.12); color: var(--secondary); font-size: 12px; font-weight: 700; padding: 4px 10px;">
+              🟢 Income Voucher
+            </span>
+            <span *ngIf="selectedVoucher.kind === 'Transfer'" class="badge" style="background: rgba(59,130,246,0.12); color: #2563EB; font-size: 12px; font-weight: 700; padding: 4px 10px;">
+              🔵 Advance Transfer Voucher
+            </span>
+            <span *ngIf="selectedVoucher.kind === 'Expense'" class="badge" style="background: rgba(239,68,68,0.12); color: var(--danger); font-size: 12px; font-weight: 700; padding: 4px 10px;">
+              🔴 Expense Voucher
+            </span>
+          </div>
+
+          <!-- Transaction Info Fields -->
+          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px; margin-bottom: 16px;">
+            <div style="display: flex; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; align-items: center;">
+              <span style="width: 140px; font-weight: 700; color: var(--text-muted);">Date:</span>
+              <span style="font-weight: 600; color: var(--text-primary);">{{ selectedVoucher.date || '—' }}</span>
+            </div>
+            
+            <div style="display: flex; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; align-items: center;">
+              <span style="width: 140px; font-weight: 700; color: var(--text-muted);">
+                {{ selectedVoucher.kind === 'Income' ? 'Received From:' : (selectedVoucher.kind === 'Transfer' ? 'Sender/Receiver:' : 'Paid To (Vendor):') }}
+              </span>
+              <span style="font-weight: 700; color: var(--text-primary);">{{ selectedVoucher.party || '—' }}</span>
+            </div>
+
+            <div style="display: flex; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; align-items: center;">
+              <span style="width: 140px; font-weight: 700; color: var(--text-muted);">Payment Mode:</span>
+              <span style="font-weight: 600; color: var(--text-primary); text-transform: uppercase;">{{ selectedVoucher.mode || 'Cash' }}</span>
+            </div>
+
+            <div style="display: flex; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; align-items: center;">
+              <span style="width: 140px; font-weight: 700; color: var(--text-muted);">Category / Dept:</span>
+              <span>
+                <span class="badge badge-info" style="font-size: 11px;">{{ selectedVoucher.category || 'General' }}</span>
+              </span>
+            </div>
+
+            <!-- Spent by Volunteer Link (for Expenses) -->
+            <div *ngIf="selectedVoucher.kind === 'Expense' && selectedVoucher.volunteerId" 
+                 style="display: flex; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; align-items: center;">
+              <span style="width: 140px; font-weight: 700; color: var(--text-muted);">Spent by:</span>
+              <span (click)="openVolunteerExpensesModal(selectedVoucher.volunteerId); showVoucherModal = false"
+                    style="color: var(--primary); font-weight: 800; text-decoration: underline; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
+                    title="Click to view volunteer history">
+                👤 {{ getVolunteerName(selectedVoucher.volunteerId) }} <span style="font-size: 10px; font-weight: 500; text-decoration: none; color: var(--text-muted);">(View ledger)</span>
+              </span>
+            </div>
+
+            <!-- Description/Remarks -->
+            <div *ngIf="selectedVoucher.description" style="display: flex; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; align-items: flex-start;">
+              <span style="width: 140px; font-weight: 700; color: var(--text-muted);">Remarks / Note:</span>
+              <span style="font-weight: 500; color: var(--text-secondary); font-style: italic; flex: 1;">{{ selectedVoucher.description }}</span>
+            </div>
+          </div>
+
+          <!-- Itemwise Breakdown (Only for expenses with items) -->
+          <div *ngIf="selectedVoucher.kind === 'Expense' && selectedVoucher.items && selectedVoucher.items.length > 0" 
+               style="margin-top: 16px; border-top: 1px dashed var(--border-color); padding-top: 14px;">
+            <h4 style="font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.03em;">
+              🛒 Itemized Breakdown:
+            </h4>
+            <div style="display: flex; flex-direction: column; gap: 6px; background: rgba(0,0,0,0.01); border-radius: 8px; padding: 12px; border: 1px solid var(--border-color); max-height: 150px; overflow-y: auto;">
+              <div *ngFor="let it of selectedVoucher.items" 
+                   style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-bottom: 1px solid rgba(0,0,0,0.03); padding-bottom: 4px; margin-bottom: 4px;">
+                <div>
+                  <strong style="color: var(--text-primary);">{{ it.item }}</strong>
+                  <span style="color: var(--text-muted); font-size: 10px; margin-left: 6px;">(×{{ it.unit }} &#64; ₹{{ it.unitPrice | number }})</span>
+                </div>
+                <strong style="color: var(--danger); font-size: 12px;">₹{{ (it.unit * it.unitPrice) | number }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Block -->
+          <div style="margin-top: 20px; border-top: 2px solid var(--border-color); padding-top: 14px; text-align: right;">
+            <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">Voucher Amount:</span>
+            <div style="font-size: 26px; font-weight: 900; margin-top: 4px; font-family: monospace;"
+                 [style.color]="selectedVoucher.kind === 'Income' ? 'var(--secondary)' : (selectedVoucher.kind === 'Transfer' ? '#2563EB' : 'var(--danger)')">
+              {{ selectedVoucher.kind === 'Income' ? '+' : (selectedVoucher.kind === 'Transfer' ? '⇄' : '−') }}₹{{ selectedVoucher.amount | number }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 18px;">
+          <button *ngIf="selectedVoucher?.kind === 'Income'" class="btn btn-outline"
+                  style="border-color: #25D366; color: #25D366; font-weight: 700; display: flex; align-items: center; gap: 6px; font-size: 13px;"
+                  (click)="openThankYouModal(selectedVoucher); showVoucherModal = false">
+            📲 Send WhatsApp Receipt
+          </button>
+          <button class="btn btn-outline" style="padding: 8px 24px; font-weight: 700; margin-left: auto;" (click)="showVoucherModal = false">Close</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 4. CHECK-IN SCANNER -->
+    <div *ngIf="activeTab === 'scanner'" class="animated-fade-in" style="display: grid; grid-template-columns: 1.2fr 1.8fr; gap: 24px; margin-bottom: 24px;">
+      <!-- Scan Viewfinder simulator -->
+      <div class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; position: relative; overflow: hidden; border-top: 3px solid var(--primary);">
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; width: 100%; text-align: left;">{{ t('checkinScannerTitle') }}</h3>
+        
+        <div style="width: 100%; margin-bottom: 16px;">
+          <label style="font-weight: 600; font-size: 13px;">{{ t('selectCheckpoint') }}</label>
+          <select [(ngModel)]="scanCheckpointId" style="margin-top: 6px; width: 100%; padding: 8px; border-radius: 6px; background: var(--bg-tertiary);">
+            <option *ngFor="let cp of checkpointOptions" [value]="cp.value">{{ cp.label }}</option>
+          </select>
+        </div>
+
+        <!-- Viewfinder Box (Live Video or Placeholder) -->
+        <div style="width: 280px; height: 280px; border: 3px solid var(--border-color); border-radius: 20px; position: relative; display: flex; justify-content: center; align-items: center; background: #000; overflow: hidden; margin: 10px 0 20px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.15);">
+          <!-- Moving Scanning Line (only when active) -->
+          <div *ngIf="cameraActive" style="position: absolute; left: 0; right: 0; height: 3px; background: #00ff66; box-shadow: 0 0 10px #00ff66; animation: scanLineMove 2.5s linear infinite; z-index: 5;"></div>
+          <!-- Viewfinder Corners -->
+          <div style="position: absolute; top: 12px; left: 12px; width: 24px; height: 24px; border-top: 4px solid #00ff66; border-left: 4px solid #00ff66; border-top-left-radius: 4px; z-index: 4;"></div>
+          <div style="position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; border-top: 4px solid #00ff66; border-right: 4px solid #00ff66; border-top-right-radius: 4px; z-index: 4;"></div>
+          <div style="position: absolute; bottom: 12px; left: 12px; width: 24px; height: 24px; border-bottom: 4px solid #00ff66; border-left: 4px solid #00ff66; border-bottom-left-radius: 4px; z-index: 4;"></div>
+          <div style="position: absolute; bottom: 12px; right: 12px; width: 24px; height: 24px; border-bottom: 4px solid #00ff66; border-right: 4px solid #00ff66; border-bottom-right-radius: 4px; z-index: 4;"></div>
+          
+          <!-- Live Video Stream -->
+          <video id="scanner-video" style="width: 100%; height: 100%; object-fit: cover;" [style.display]="cameraActive ? 'block' : 'none'"></video>
+
+          <!-- Camera Inactive Placeholder -->
+          <div *ngIf="!cameraActive" style="text-align: center; color: rgba(255,255,255,0.4); display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px;">
+            <svg style="width: 54px; height: 54px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span style="font-size: 13px; font-weight: 700; color: #fff;">Camera is Stopped</span>
+            <p style="font-size: 11px; color: #94a3b8; max-width: 180px; margin: 0; line-height: 1.4;">Click the start button below to scan tickets.</p>
+          </div>
+        </div>
+
+        <!-- Camera Actions & Settings -->
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 12px; align-items: center;">
+          <!-- Camera Selection (only visible if we have multiple cameras) -->
+          <div *ngIf="cameraActive && cameraDevices.length > 1" style="width: 100%;">
+            <label style="font-weight: 600; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: block;">Select Camera Device</label>
+            <select [(ngModel)]="selectedCameraId" (change)="onCameraChange()" style="width: 100%; padding: 8px; border-radius: 6px; background: var(--bg-tertiary);">
+              <option *ngFor="let dev of cameraDevices" [value]="dev.deviceId">{{ dev.label || 'Camera ' + dev.deviceId.slice(0,5) }}</option>
+            </select>
+          </div>
+
+          <!-- Start / Stop Button -->
+          <button *ngIf="!cameraActive" type="button" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700; font-size: 14px;" (click)="startCamera()">
+            📷 Start Camera Scan
+          </button>
+          <button *ngIf="cameraActive" type="button" class="btn btn-danger" style="width: 100%; padding: 12px; font-weight: 700; font-size: 14px; background: var(--danger); border-color: var(--danger); color: #fff;" (click)="stopCamera()">
+            ⏹ Stop Camera
+          </button>
+        </div>
+
+        <div style="text-align: center; font-size: 12px; color: var(--text-secondary); margin-top: 14px;">
+          Hold the pilgrim's printed E-ticket or phone ticket QR code within the scanner borders.
+        </div>
+      </div>
+
+      <!-- Yatri manual check-in selector & logs -->
+      <div class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        <h3 style="font-size: 18px; font-weight: 600;">Manual Check-in & Logs</h3>
+
+        <!-- Search Bar & Permanent Yatri List -->
+        <div>
+          <label style="font-weight: 600; font-size: 13px;">{{ t('searchYatriCheckin') }}</label>
+          <input type="text" [(ngModel)]="scanSearchQuery" [placeholder]="t('yatriSearch')" style="margin-top: 6px; margin-bottom: 10px;" />
+          
+          <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-tertiary);">
+            <div *ngIf="scanYatrisListToDisplay.length === 0" style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px;">
+              No matching pilgrims found.
+            </div>
+            <div *ngFor="let y of scanYatrisListToDisplay"
+                 (click)="selectYatriForScan(y)"
+                 [style.background]="selectedScanYatriId === y.id ? 'rgba(99,102,241,0.1)' : 'transparent'"
+                 style="padding: 10px 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: var(--transition);"
+                 class="yatri-scan-row">
+              <div>
+                <div style="font-weight: 600; font-size: 13px; color: var(--text-primary);">
+                  {{ y.name }}
+                  <span *ngIf="y.initiatedName" style="font-size: 11px; font-style: italic; color: var(--primary);">({{ y.initiatedName }})</span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted);">ID: {{ y.id }} | Phone: {{ y.phone }}</div>
+              </div>
+              <button class="btn btn-primary" style="font-size: 11px; padding: 4px 12px; font-weight: 600; flex-shrink: 0;">
+                Check-in
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Success Message -->
+        <div *ngIf="scanningSuccessMessage" class="badge-success animated-fade-in" style="padding: 12px; border-radius: 8px; font-weight: 700; text-align: center; border: 1.5px solid var(--secondary); font-size: 14px;">
+          🎉 {{ scanningSuccessMessage }}
+        </div>
+
+        <!-- Checkin Log list -->
+        <div>
+          <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+            {{ t('recentScannedLogs') }}
+          </h4>
+          <div *ngIf="scannedYatrisList.length === 0" style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 13px; font-style: italic;">
+            {{ t('noCheckins') }}
+          </div>
+          <div *ngIf="scannedYatrisList.length > 0" style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto;">
+            <div *ngFor="let log of scannedYatrisList" style="padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 12px;">
+              <div>
+                <span style="font-weight: 700; color: var(--text-primary);">{{ log.name }}</span>
+                <div style="font-size: 10px; color: var(--text-muted);">ID: {{ log.yatriId }} | Time: {{ log.time }}</div>
+              </div>
+              <span class="badge badge-success" style="font-size: 10px;">{{ log.checkpoint }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. PRASADAM TRACKER -->
+    <div *ngIf="activeTab === 'prasadam'" class="glass-panel animated-fade-in" style="padding: 24px; border-top: 3px solid var(--secondary);">
+      <!-- Header Row -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <h3 style="font-size: 20px; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+            <span>🍽️</span> Prasadam Tracker
+          </h3>
+        </div>
+
+        <!-- Date Picker + Meal Selector -->
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+
+          <!-- 📅 Date Selector -->
+          <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-tertiary); border: 1.5px solid var(--border-color); border-radius: 10px; padding: 8px 14px;">
+            <span style="font-size: 14px;">📅</span>
+            <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary); white-space: nowrap;">Date:</label>
+            <input type="date" [(ngModel)]="prasadamDate"
+                   style="border: none; background: transparent; font-size: 13px; font-weight: 700; color: var(--text-primary); cursor: pointer; outline: none;" />
+          </div>
+
+          <!-- 🍽️ Meal Selector Pills -->
+          <div style="display: flex; border: 1.5px solid var(--border-color); border-radius: 10px; overflow: hidden; background: var(--bg-tertiary);">
+            <button (click)="prasadamMeal = 'Breakfast'"
+                    [style.background]="prasadamMeal === 'Breakfast' ? 'var(--secondary)' : 'transparent'"
+                    [style.color]="prasadamMeal === 'Breakfast' ? '#fff' : 'var(--text-secondary)'"
+                    style="border: none; padding: 10px 18px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">
+              🍳 Breakfast
+            </button>
+            <button (click)="prasadamMeal = 'Lunch'"
+                    [style.background]="prasadamMeal === 'Lunch' ? 'var(--secondary)' : 'transparent'"
+                    [style.color]="prasadamMeal === 'Lunch' ? '#fff' : 'var(--text-secondary)'"
+                    style="border: none; padding: 10px 18px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">
+              🍛 Lunch
+            </button>
+            <button (click)="prasadamMeal = 'Dinner'"
+                    [style.background]="prasadamMeal === 'Dinner' ? 'var(--secondary)' : 'transparent'"
+                    [style.color]="prasadamMeal === 'Dinner' ? '#fff' : 'var(--text-secondary)'"
+                    style="border: none; padding: 10px 18px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">
+              🥗 Dinner
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Date info banner + Quick Food Expense Button -->
+      <div style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 8px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 14px;">📅</span>
+          <span style="font-size: 13px; font-weight: 600; color: var(--primary);">{{ prasadamDate }} — {{ prasadamMeal }} Prasadam</span>
+        </div>
+
+        <button *ngIf="canEditExpense && auth.hasPermission('Food', 'addExpense')"
+                (click)="openAddFoodExpenseFromPrasadam()"
+                class="btn btn-primary" style="padding: 6px 14px; font-size: 12px; font-weight: 700; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border: none;">
+          ➕ Add Food Expense (अन्न विभाग खर्च)
+        </button>
+      </div>
+
+      <!-- 4 Summary Analytics Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 20px;">
+        <div style="background: rgba(99,102,241,0.06); border: 1.5px solid rgba(99,102,241,0.18); border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">👥 Total Pilgrims</div>
+            <div style="font-size: 24px; font-weight: 900; color: var(--primary); margin-top: 4px;">{{ allowedYatris.length }}</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">{{ getSelectedPackageName() }}</div>
+          </div>
+          <div style="font-size: 32px;">👥</div>
+        </div>
+
+        <div style="background: rgba(16,185,129,0.06); border: 1.5px solid rgba(16,185,129,0.18); border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em;">✅ Served ({{ prasadamMeal }})</div>
+            <div style="font-size: 24px; font-weight: 900; color: var(--secondary); margin-top: 4px;">
+              {{ prasadamTakenYatris.length }} <span style="font-size: 14px; font-weight: 600;">/ {{ allowedYatris.length }}</span>
+            </div>
+            <div style="font-size: 11px; color: var(--secondary); font-weight: 700; margin-top: 2px;">
+              {{ allowedYatris.length > 0 ? (prasadamTakenYatris.length / allowedYatris.length * 100 | number:'1.0-0') : 0 }}% complete
+            </div>
+          </div>
+          <div style="font-size: 32px;">🍱</div>
+        </div>
+
+        <div style="background: rgba(245,158,11,0.06); border: 1.5px solid rgba(245,158,11,0.18); border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: #d97706; text-transform: uppercase; letter-spacing: 0.05em;">⏳ Pending</div>
+            <div style="font-size: 24px; font-weight: 900; color: #d97706; margin-top: 4px;">
+              {{ prasadamPendingYatris.length }} <span style="font-size: 14px; font-weight: 600;">pilgrims</span>
+            </div>
+            <div style="font-size: 11px; color: #d97706; font-weight: 700; margin-top: 2px;">Awaiting prasadam</div>
+          </div>
+          <div style="font-size: 32px;">⏳</div>
+        </div>
+
+        <!-- Food Dept Expense & Cost/Plate Card -->
+        <div style="background: rgba(249,115,22,0.08); border: 1.5px solid rgba(249,115,22,0.25); border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; font-weight: 800; color: #ea580c; text-transform: uppercase; letter-spacing: 0.05em;">🍲 Food Dept Expense</div>
+            <div style="font-size: 22px; font-weight: 900; color: #ea580c; margin-top: 2px;">
+              ₹ {{ foodExpensesTotal | number:'1.0-0' }}
+            </div>
+            <div style="font-size: 11px; color: #c2410c; font-weight: 700; margin-top: 2px;">
+              Cost / Plate: <span style="background: rgba(234,88,12,0.15); padding: 2px 6px; border-radius: 4px;">₹ {{ costPerPrasadamPlate | number:'1.1-1' }}</span>
+            </div>
+          </div>
+          <div style="font-size: 32px;">📊</div>
+        </div>
+      </div>
+
+      <!-- Food Department Financial Breakdown Strip -->
+      <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TOTAL MEALS SERVED</div>
+            <div style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-top: 2px;">🍱 {{ totalPrasadamMealsServed }} Meals</div>
+          </div>
+          <div style="border-left: 1px solid var(--border-color); padding-left: 20px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);">SELECTED DATE MEALS</div>
+            <div style="font-size: 16px; font-weight: 800; color: var(--primary); margin-top: 2px;">📅 {{ todayPrasadamMealsServed }} Meals</div>
+          </div>
+          <div style="border-left: 1px solid var(--border-color); padding-left: 20px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);">PER PILGRIM FOOD BUDGET</div>
+            <div style="font-size: 16px; font-weight: 800; color: var(--secondary); margin-top: 2px;">👤 ₹ {{ costPerYatriFood | number:'1.0-0' }} / Pilgrim</div>
+          </div>
+        </div>
+
+        <button (click)="openAddFoodExpenseFromPrasadam()"
+                class="btn btn-outline" style="font-size: 12px; font-weight: 700; border-color: #ea580c; color: #ea580c; padding: 6px 14px;">
+          ➕ Add Grocery / Catering Expense
+        </button>
+      </div>
+
+      <!-- Controls & Search Strip -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+        <!-- Sub-Tabs: Pending vs Taken -->
+        <div style="display: flex; gap: 8px;">
+          <button (click)="prasadamTab = 'pending'"
+                  [class.btn-primary]="prasadamTab === 'pending'"
+                  [class.btn-outline]="prasadamTab !== 'pending'"
+                  style="font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;">
+            ⏳ Pending ({{ prasadamPendingYatris.length }})
+          </button>
+          <button (click)="prasadamTab = 'taken'"
+                  [class.btn-primary]="prasadamTab === 'taken'"
+                  [class.btn-outline]="prasadamTab !== 'taken'"
+                  style="font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;">
+            ✅ Served ({{ prasadamTakenYatris.length }})
+          </button>
+        </div>
+
+        <!-- Search input -->
+        <div style="width: 280px;">
+          <input type="text" [(ngModel)]="prasadamSearchQuery" placeholder="🔍 Search by name, phone or Yatri ID..."
+                 style="font-size: 12px; padding: 8px 14px; border-radius: 8px; width: 100%;" />
+        </div>
+      </div>
+
+      <!-- TAB 1: PENDING PRASADAM LIST -->
+      <div *ngIf="prasadamTab === 'pending'" class="table-container animated-fade-in">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th style="width: 50px; text-align: center;">#</th>
+              <th>Pilgrim Name</th>
+              <th>Phone</th>
+              <th>Age / Gender</th>
+              <th>Booking Type</th>
+              <th style="text-align: center;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let y of prasadamPendingYatris; let idx = index">
+              <td style="text-align: center; font-weight: 700; color: var(--text-muted);">{{ idx + 1 }}</td>
+              <td style="font-weight: 600; color: var(--text-primary);">
+                <div>{{ y.name }}</div>
+                <div *ngIf="y.initiatedName" style="font-size: 11px; font-style: italic; color: var(--primary);">Initiated: {{ y.initiatedName }}</div>
+              </td>
+              <td style="font-size: 13px; color: var(--text-secondary);">{{ y.phone || '—' }}</td>
+              <td style="font-size: 12px; color: var(--text-secondary);">{{ y.age ? y.age + ' yrs' : '—' }} / {{ y.gender || '—' }}</td>
+              <td><span class="badge badge-info">{{ y.bookingType || 'Regular' }}</span></td>
+              <td style="text-align: center;">
+                <button type="button" (click)="markPrasadamServed(y)"
+                        [disabled]="prasadamMarkingInProgress.has(getPrasadamKey(y.id, prasadamCheckpoints[prasadamMeal] || 'Meal-'+prasadamMeal, prasadamDate))"
+                        class="btn btn-primary"
+                        style="font-size: 11px; padding: 6px 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; border-radius: 6px;">
+                  🍱 Mark Served
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="prasadamPendingYatris.length === 0">
+              <td colspan="6" style="text-align: center; padding: 36px; color: var(--secondary); font-weight: 700;">
+                🎉 All pilgrims have received {{ prasadamMeal }} prasadam on {{ prasadamDate }}!
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TAB 2: TAKEN PRASADAM LIST -->
+      <div *ngIf="prasadamTab === 'taken'" class="table-container animated-fade-in">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th style="width: 50px; text-align: center;">#</th>
+              <th>Pilgrim Name</th>
+              <th>Phone</th>
+              <th>Age / Gender</th>
+              <th>Meal</th>
+              <th>Date</th>
+              <th style="text-align: center;">Status</th>
+              <th style="text-align: center;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let y of prasadamTakenYatris; let idx = index">
+              <td style="text-align: center; font-weight: 700; color: var(--text-muted);">{{ idx + 1 }}</td>
+              <td style="font-weight: 600; color: var(--text-primary);">
+                <div>{{ y.name }}</div>
+                <div *ngIf="y.initiatedName" style="font-size: 11px; font-style: italic; color: var(--primary);">Initiated: {{ y.initiatedName }}</div>
+              </td>
+              <td style="font-size: 13px; color: var(--text-secondary);">{{ y.phone || '—' }}</td>
+              <td style="font-size: 12px; color: var(--text-secondary);">{{ y.age ? y.age + ' yrs' : '—' }} / {{ y.gender || '—' }}</td>
+              <td><span class="badge badge-info">{{ prasadamMeal }}</span></td>
+              <td style="font-size: 12px; color: var(--text-muted);">{{ prasadamDate }}</td>
+              <td style="text-align: center;">
+                <span class="badge badge-success" style="font-weight: 700; padding: 4px 10px;">
+                  ✓ Served
+                </span>
+              </td>
+              <td style="text-align: center;">
+                <button type="button" (click)="cancelPrasadamServed(y)"
+                        class="btn btn-outline"
+                        style="font-size: 11px; padding: 4px 10px; border-color: var(--danger); color: var(--danger); font-weight: 700;">
+                  ↩️ Undo
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="prasadamTakenYatris.length === 0">
+              <td colspan="8" style="text-align: center; padding: 36px; color: var(--text-muted); font-style: italic;">
+                No {{ prasadamMeal }} prasadam served on {{ prasadamDate }} yet.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <!-- 6. MEDICAL INCIDENTS & CARE -->
+    <div *ngIf="activeTab === 'medical'" class="glass-panel animated-fade-in" style="padding: 24px; border-top: 3px solid var(--accent-orange);">
+      <!-- Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <h3 style="font-size: 20px; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+            <span>🏥</span> {{ t('MedicalIncidents') }}
+          </h3>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <div style="width: 250px;">
+            <input type="text" [(ngModel)]="medicalSearchQuery" [placeholder]="'🔍 ' + t('search')"
+                   style="font-size: 12px; padding: 8px 12px; border-radius: 8px; width: 100%;" />
+          </div>
+          <button class="btn btn-primary" (click)="openAddMedicalModal()" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+            ➕ {{ t('RecordMedicalIncident') }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="searchFilteredIncidents.length === 0" style="text-align: center; color: var(--text-muted); font-size: 14px; padding: 48px; background: var(--bg-tertiary); border-radius: 10px;">
+        No medical incidents recorded yet.
+      </div>
+
+      <!-- Table View -->
+      <div class="table-container" *ngIf="searchFilteredIncidents.length > 0">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th style="width: 50px; text-align: center;">#</th>
+              <th>{{ t('PatientName') }}</th>
+              <th>{{ t('Symptoms') }}</th>
+              <th>{{ t('TreatmentGiven') }}</th>
+              <th>{{ t('DoctorName') }}</th>
+              <th>{{ t('date') }}</th>
+              <th style="text-align: center;">{{ t('status') }}</th>
+              <th style="text-align: center;">{{ t('Actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let med of searchFilteredIncidents; let idx = index">
+              <td style="text-align: center; font-weight: 700; color: var(--text-muted);">{{ idx + 1 }}</td>
+              <td style="font-weight: 700; color: var(--text-primary);">
+                <div>{{ med.yatriName }}</div>
+              </td>
+              <td>
+                <span class="badge badge-warning" style="font-size: 12px; font-weight: 700;">
+                  ⚠️ {{ med.symptoms }}
+                </span>
+              </td>
+              <td style="font-size: 12.5px; color: var(--text-secondary);">{{ med.treatment || 'First Aid' }}</td>
+              <td style="font-size: 12px; font-weight: 600; color: var(--primary);">👨‍⚕️ {{ med.doctorName || 'Medical Team' }}</td>
+              <td style="font-size: 12px; color: var(--text-muted); white-space: nowrap;">{{ med.date }}</td>
+              <td style="text-align: center;">
+                <span [class.badge-success]="med.status === 'Recovered' || med.status === 'Treated'"
+                      [class.badge-danger]="med.status === 'Referred' || med.status === 'Critical'"
+                      [class.badge-warning]="med.status === 'Under Care' || med.status === 'Under Treatment'"
+                      class="badge" style="font-weight: 700;">
+                  {{ med.status }}
+                </span>
+              </td>
+              <td style="text-align: center; white-space: nowrap;">
+                <div style="display: flex; gap: 6px; justify-content: center;">
+                  <button type="button" class="btn btn-outline"
+                          style="font-size: 11px; padding: 4px 8px; border-color: var(--primary); color: var(--primary); font-weight: 700;"
+                          (click)="openEditMedicalModal(med, $event)" title="Edit">
+                    ✏️ Edit
+                  </button>
+                  <button type="button" class="btn btn-outline"
+                          style="font-size: 11px; padding: 4px 8px; border-color: var(--danger); color: var(--danger); font-weight: 700;"
+                          (click)="deleteMedicalDirect(med, $event)" title="Delete">
+                    🗑️ Delete
+                  </button>
+                  <button type="button" class="btn btn-outline"
+                          style="font-size: 11px; padding: 4px 8px; border-color: #25D366; color: #25D366; font-weight: 700;"
+                          (click)="sendMedicalWhatsApp(med)" title="Send WhatsApp">
+                    💬 WhatsApp
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 7. LOST & FOUND MANAGEMENT -->
+    <div *ngIf="activeTab === 'lost'" class="glass-panel animated-fade-in" style="padding: 24px; border-top: 3px solid var(--primary);">
+      <!-- Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <h3 style="font-size: 20px; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+            <span>🔍</span> {{ t('LostAndFound') }}
+          </h3>
+        </div>
+
+        <button class="btn btn-primary" (click)="openAddLostModal()" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+          ➕ {{ t('LogLostFoundItem') }}
+        </button>
+      </div>
+
+      <!-- Filters Strip -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; background: var(--bg-tertiary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+        <!-- Category Filter -->
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Category:</span>
+          <select [(ngModel)]="lostCategoryFilter" style="font-size: 12px; padding: 6px 12px; border-radius: 6px;">
+            <option value="All">🌐 All Categories</option>
+            <option *ngFor="let cat of lostCategories" [value]="cat">{{ cat }}</option>
+          </select>
+
+          <!-- Status Filter -->
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-left: 10px;">Status:</span>
+          <select [(ngModel)]="lostStatusFilter" style="font-size: 12px; padding: 6px 12px; border-radius: 6px;">
+            <option value="All">All Status</option>
+            <option value="Lost">🔴 Lost</option>
+            <option value="Found">🟢 Found</option>
+            <option value="Returned">🔵 Returned</option>
+          </select>
+        </div>
+
+        <!-- Search Input -->
+        <div style="width: 250px;">
+          <input type="text" [(ngModel)]="lostSearchQuery" placeholder="🔍 Search by item or person name..."
+                 style="font-size: 12px; padding: 6px 12px; border-radius: 6px; width: 100%;" />
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="searchFilteredLostItems.length === 0" style="text-align: center; color: var(--text-muted); font-size: 14px; padding: 48px; background: var(--bg-tertiary); border-radius: 10px;">
+        No lost or found items recorded yet.
+      </div>
+
+      <!-- Items Table -->
+      <div class="table-container" *ngIf="searchFilteredLostItems.length > 0">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th style="width: 50px; text-align: center;">#</th>
+              <th>{{ t('ItemCategory') }}</th>
+              <th>{{ t('ItemName') }}</th>
+              <th>{{ t('Location') }}</th>
+              <th>{{ t('OwnerName') }}</th>
+              <th>{{ t('date') }}</th>
+              <th style="text-align: center;">{{ t('status') }}</th>
+              <th style="text-align: center;">{{ t('Actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of searchFilteredLostItems; let idx = index">
+              <td style="text-align: center; font-weight: 700; color: var(--text-muted);">{{ idx + 1 }}</td>
+              <td>
+                <span class="badge" style="font-size: 11.5px; font-weight: 700; background: rgba(99,102,241,0.08); color: var(--primary);">
+                  {{ item.category || 'Other' }}
+                </span>
+              </td>
+              <td>
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 14px;">{{ item.itemName }}</div>
+                <div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 2px;">{{ item.description || '—' }}</div>
+              </td>
+              <td style="font-size: 12px; color: var(--text-secondary);">📍 {{ item.location || 'Yatra Ground' }}</td>
+              <td style="font-size: 12px; color: var(--text-primary);">
+                <div style="font-weight: 600;">{{ item.yatriName || 'Unknown' }}</div>
+                <div style="font-size: 11px; color: var(--text-muted);" *ngIf="item.yatriPhone">{{ item.yatriPhone }}</div>
+              </td>
+              <td style="font-size: 12px; color: var(--text-muted); white-space: nowrap;">{{ item.reportedDate }}</td>
+              <td style="text-align: center;">
+                <span [class.badge-danger]="item.status === 'Lost'"
+                      [class.badge-warning]="item.status === 'Found'"
+                      [class.badge-success]="item.status === 'Returned' || item.status === 'Claimed'"
+                      class="badge" style="font-weight: 700; padding: 4px 10px;">
+                  {{ item.status === 'Returned' ? '🔵 Handed Over' : (item.status === 'Found' ? '🟢 Found' : '🔴 Lost') }}
+                </span>
+                <div *ngIf="item.claimedBy" style="font-size: 10px; color: var(--secondary); font-weight: 700; margin-top: 3px;">
+                  Recd by: {{ item.claimedBy }}
+                </div>
+              </td>
+              <td style="text-align: center; white-space: nowrap;">
+                <div style="display: flex; gap: 6px; justify-content: center;">
+                  <button *ngIf="item.status !== 'Returned'" type="button" class="btn btn-primary"
+                          style="font-size: 11px; padding: 4px 10px; font-weight: 700; background: var(--secondary); border-color: var(--secondary);"
+                          (click)="openReturnModal(item, $event)" title="Hand Over to Owner">
+                    🤝 Return to Owner
+                  </button>
+                  <button type="button" class="btn btn-outline"
+                          style="font-size: 11px; padding: 4px 8px; border-color: var(--primary); color: var(--primary); font-weight: 700;"
+                          (click)="openEditLostModal(item, $event)" title="Edit">
+                    ✏️ Edit
+                  </button>
+                  <button type="button" class="btn btn-outline"
+                          style="font-size: 11px; padding: 4px 8px; border-color: var(--danger); color: var(--danger); font-weight: 700;"
+                          (click)="deleteLostDirect(item, $event)" title="Delete">
+                    🗑️ Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 8. ROLE & MEMBER PERMISSIONS MATRIX (Admin Only) -->
+    <div *ngIf="activeTab === 'permissions' && isKasAuthority" class="glass-panel animated-fade-in" style="padding: 24px;">
+      
+      <!-- Sub-Tab Toggle Navigation -->
+      <div style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 2px solid var(--border-color); padding-bottom: 14px; flex-wrap: wrap;">
+        <button (click)="memberAccessTab = 'roleMatrix'"
+                [style.background]="memberAccessTab === 'roleMatrix' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'var(--bg-tertiary)'"
+                [style.color]="memberAccessTab === 'roleMatrix' ? '#ffffff' : 'var(--text-secondary)'"
+                style="padding: 10px 22px; border-radius: 10px; border: none; font-weight: 800; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+          ⚙️ Member Checkbox Permission Matrix (सदस्य निवड व चेकबॉक्स परमिशन)
+        </button>
+        <button (click)="memberAccessTab = 'memberMatrix'"
+                [style.background]="memberAccessTab === 'memberMatrix' ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : 'var(--bg-tertiary)'"
+                [style.color]="memberAccessTab === 'memberMatrix' ? '#ffffff' : 'var(--text-secondary)'"
+                style="padding: 10px 22px; border-radius: 10px; border: none; font-weight: 800; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+          📋 All Members Quick List (सर्व सदस्यांची यादी)
+        </button>
+      </div>
+
+      <!-- ── SECTION A: MEMBER-WISE ACCESS MATRIX ── -->
+      <div *ngIf="memberAccessTab === 'memberMatrix'">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+              👤 Individual Member & Department Access Control
+            </h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">
+              प्रत्येक सदस्याला (Person A → Food, Person B → Medical) त्यांचा विशिष्ट विभाग आणि रोल सेट करा.
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="text" [(ngModel)]="memberAccessSearch" placeholder="🔍 Search member name, username, department..."
+                   style="padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-size: 13px; width: 280px;" />
+            <button class="btn btn-outline" (click)="loadSystemUsers()" style="padding: 9px 14px; font-weight: 700; font-size: 13px;">
+              🔄 Refresh List
+            </button>
+          </div>
+        </div>
+
+        <!-- Members Table -->
+        <div class="table-container" style="overflow-x: auto;">
+          <table class="custom-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: var(--bg-primary);">
+                <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 13px; border-bottom: 2px solid var(--border-color);">Member Name & Username</th>
+                <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 13px; border-bottom: 2px solid var(--border-color);">Role / Position</th>
+                <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 13px; border-bottom: 2px solid var(--border-color);">Assigned Department Access</th>
+                <th style="padding: 12px 16px; text-align: center; font-weight: 800; font-size: 13px; border-bottom: 2px solid var(--border-color);">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of filteredSystemUsers" style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 12px 16px;">
+                  <div style="font-weight: 800; font-size: 14px; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span>{{ user.fullName }}</span>
+                    <span *ngIf="user.hasUserAccount" style="font-size: 10px; background: rgba(16,185,129,0.15); color: #10b981; padding: 2px 7px; border-radius: 6px; font-weight: 800; border: 1px solid rgba(16,185,129,0.3);">
+                      ✓ Active Account
+                    </span>
+                    <span *ngIf="!user.hasUserAccount" style="font-size: 10px; background: rgba(245,158,11,0.15); color: #f59e0b; padding: 2px 7px; border-radius: 6px; font-weight: 800; border: 1px solid rgba(245,158,11,0.3);">
+                      🙋 Volunteer Record
+                    </span>
+                  </div>
+                  <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+                    <span *ngIf="user.hasUserAccount">&#64;{{ user.username }}</span>
+                    <span *ngIf="user.phone"> • 📞 {{ user.phone }}</span>
+                  </div>
+                </td>
+                <td style="padding: 12px 16px;">
+                  <select [(ngModel)]="user.role" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-size: 13px; font-weight: 700;">
+                    <option value="Volunteer">🙋 Volunteer</option>
+                    <option value="ServiceIncharge">🧑‍💼 Service Incharge</option>
+                    <option value="KasAuthority">👑 KasAuthority (Admin)</option>
+                  </select>
+                </td>
+                <td style="padding: 12px 16px;">
+                  <select [(ngModel)]="user.department" style="padding: 8px 12px; border-radius: 8px; border: 1.5px solid #6366f1; background: var(--bg-secondary); color: var(--text-primary); font-size: 13px; font-weight: 700;">
+                    <option value="General">🏢 General (All Departments Access)</option>
+                    <option value="Food">🍲 Food (Prasadam Department)</option>
+                    <option value="Transport">🚌 Transport Department</option>
+                    <option value="Accommodation">🏨 Accommodation Department</option>
+                    <option value="Medical">🩺 Medical Department</option>
+                    <option value="Religious">🛕 Religious / Puja Department</option>
+                  </select>
+                </td>
+                <td style="padding: 12px 16px; text-align: center;">
+                  <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" (click)="updateMemberAccess(user)" [disabled]="user.isSaving"
+                            style="padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: 8px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; cursor: pointer;">
+                      <span *ngIf="!user.isSaving">💾 Save Access</span>
+                      <span *ngIf="user.isSaving">Saving...</span>
+                    </button>
+                    <button *ngIf="!user.hasUserAccount" class="btn btn-outline" (click)="createLoginAccountForVol(user)"
+                            style="padding: 8px 12px; font-size: 11px; font-weight: 800; border-radius: 8px; border-color: #10b981; color: #10b981; cursor: pointer;"
+                            title="Create a user login account for this volunteer">
+                      🔑 Create Login
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="filteredSystemUsers.length === 0">
+                <td colspan="4" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 14px;">
+                  No members found.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── SECTION B: MEMBER & ROLE CHECKBOX PERMISSION MATRIX ── -->
+      <div *ngIf="memberAccessTab === 'roleMatrix'">
+        <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+          <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-top: 0; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            👤 Select Member to Set Custom Screen Permissions (सदस्य निवडा व हक्क ठरवा)
+          </h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+            स्वयंसेवक किंवा सर्व्हिस इंचार्ज निवडा आणि त्यांना कोणत्या विभागाचा (Food, Transport, Medical, etc.) ॲक्सेस द्यायचा ते खालील चेकबॉक्समधून ठरवा.
+          </p>
+
+          <!-- Member Selector Dropdown -->
+          <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 280px;">
+              <label style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
+                Select Member (सदस्य निवडा)
+              </label>
+              <select [(ngModel)]="selectedMemberUsername" (change)="onMemberSelect()"
+                      style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 2px solid var(--primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 15px; font-weight: 700; cursor: pointer;">
+                <option value="">-- Choose Member (Ram, Shyam, Incharges) --</option>
+                <option *ngFor="let u of systemUsers" [value]="u.username">
+                  👤 {{ u.fullName }} ({{ u.role }} - {{ u.department }} Dept) {{ u.username ? '• @' + u.username : '' }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Selected Member Summary Card -->
+          <div *ngIf="selectedMember" style="margin-top: 16px; background: var(--bg-secondary); border: 1px solid rgba(99,102,241,0.3); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="font-size: 17px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                <span>👤 {{ selectedMember.fullName }}</span>
+                <span style="font-size: 11px; background: rgba(99,102,241,0.15); color: #6366f1; padding: 3px 10px; border-radius: 6px; font-weight: 800;">
+                  {{ selectedMember.role }}
+                </span>
+                <span style="font-size: 11px; background: rgba(16,185,129,0.15); color: #10b981; padding: 3px 10px; border-radius: 6px; font-weight: 800;">
+                  🏢 {{ selectedMember.department }} Dept
+                </span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                <span *ngIf="selectedMember.hasUserAccount">Username: &#64;{{ selectedMember.username }}</span>
+                <span *ngIf="!selectedMember.hasUserAccount" style="color: #f59e0b; font-weight: 700;">⚠️ New Volunteer (Saving permissions will auto-generate login account)</span>
+                <span *ngIf="selectedMember.phone"> • 📞 {{ selectedMember.phone }}</span>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" (click)="saveMemberPermissions()" [disabled]="memberPermSaving"
+                    style="padding: 10px 22px; font-weight: 800; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; cursor: pointer; border-radius: 8px;">
+              <span *ngIf="!memberPermSaving">💾 Save {{ selectedMember.fullName }}'s Permissions</span>
+              <span *ngIf="memberPermSaving">Saving...</span>
+            </button>
+          </div>
+
+          <!-- Member Success Alert -->
+          <div *ngIf="memberPermSuccessMsg" style="margin-top: 14px; background: rgba(16,185,129,0.15); color: #10b981; padding: 12px 16px; border-radius: 10px; font-weight: 700; font-size: 14px; border: 1px solid rgba(16,185,129,0.3);">
+            {{ memberPermSuccessMsg }}
+          </div>
+
+          <!-- Checkbox Matrix for Selected Member -->
+          <div *ngIf="selectedMember" class="table-container" style="overflow-x: auto; margin-top: 20px;">
+            <table class="custom-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background: var(--bg-secondary);">
+                  <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 800; color: var(--text-primary); border-bottom: 2px solid var(--border-color);">Selected Member</th>
+                  <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🍲 Food (Prasadam)</th>
+                  <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🚌 Transport</th>
+                  <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🏨 Accommodation</th>
+                  <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🩺 Medical</th>
+                  <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🛕 Religious</th>
+                  <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🏢 General</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 14px 16px; font-weight: 800; font-size: 14px; color: var(--text-primary);">
+                    <div style="color: var(--primary); font-weight: 800; font-size: 15px;">👤 {{ selectedMember.fullName }}</div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">({{ selectedMember.role }} - {{ selectedMember.department }})</div>
+                  </td>
+                  <td *ngFor="let dept of permDepartments" style="padding: 14px 10px; text-align: center;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; background: var(--bg-secondary); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                      
+                      <label style="cursor: pointer; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; user-select: none;">
+                        <input type="checkbox" [checked]="getMemberPermCell(dept).canView"
+                               (change)="toggleMemberPermCell(dept, 'canView')" style="width: 16px; height: 16px; cursor: pointer; accent-color: #10b981;" />
+                        <span [style.color]="getMemberPermCell(dept).canView ? '#10b981' : 'var(--text-muted)'">Can View</span>
+                      </label>
+
+                      <label style="cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px; user-select: none; color: var(--text-secondary);">
+                        <input type="checkbox" [checked]="getMemberPermCell(dept).canAddExpense"
+                               (change)="toggleMemberPermCell(dept, 'canAddExpense')" style="width: 14px; height: 14px; cursor: pointer; accent-color: #6366f1;" />
+                        <span>+ Expense</span>
+                      </label>
+
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Global Role Permissions Matrix Section -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; margin-top: 32px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+          <div>
+            <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0;">
+              ⚙️ Default Role Permission Matrix (भूमिका निहाय डीफॉल्ट हक्क)
+            </h3>
+          </div>
+          <button class="btn btn-primary" (click)="savePermissionMatrix()" [disabled]="permissionSaving"
+                  style="padding: 8px 18px; font-weight: 800; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; cursor: pointer;">
+            <span *ngIf="!permissionSaving">💾 Save Role Defaults</span>
+            <span *ngIf="permissionSaving">Saving...</span>
+          </button>
+        </div>
+
+        <!-- Interactive Checkbox Grid Table -->
+        <div class="table-container" style="overflow-x: auto;">
+          <table class="custom-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: var(--bg-primary);">
+                <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 800; color: var(--text-primary); border-bottom: 2px solid var(--border-color);">Role / Authority</th>
+                <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🍲 Food (Prasadam)</th>
+                <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🚌 Transport</th>
+                <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🏨 Accommodation</th>
+                <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🩺 Medical</th>
+                <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🛕 Religious</th>
+                <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🏢 General</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let role of permRoles" style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 14px 16px; font-weight: 800; font-size: 14px; color: var(--text-primary);">
+                  <div *ngIf="role === 'ServiceIncharge'" style="color: #6366f1; font-weight: 800; font-size: 15px;">🧑‍💼 Service Incharge</div>
+                  <div *ngIf="role === 'Volunteer'" style="color: #8b5cf6; font-weight: 800; font-size: 15px;">🙋 Volunteer</div>
+                </td>
+                <td *ngFor="let dept of permDepartments" style="padding: 14px 10px; text-align: center;">
+                  <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; background: var(--bg-primary); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    
+                    <label style="cursor: pointer; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; user-select: none;">
+                      <input type="checkbox" [checked]="getPermCell(role, dept).canView"
+                             (change)="togglePerm(role, dept, 'canView')" style="width: 16px; height: 16px; cursor: pointer; accent-color: #10b981;" />
+                      <span [style.color]="getPermCell(role, dept).canView ? '#10b981' : 'var(--text-muted)'">Can View</span>
+                    </label>
+
+                    <label style="cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px; user-select: none; color: var(--text-secondary);">
+                      <input type="checkbox" [checked]="getPermCell(role, dept).canAddExpense"
+                             (change)="togglePerm(role, dept, 'canAddExpense')" style="width: 14px; height: 14px; cursor: pointer; accent-color: #6366f1;" />
+                      <span>+ Expense</span>
+                    </label>
+
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+  </div>
+
+  <!-- ══ ADD INCOME MODAL ══ -->
+  <div *ngIf="showFinanceModal"
+       class="modal-overlay"
+       (click)="showFinanceModal = false">
+    <div class="glass-panel" (click)="$event.stopPropagation()" style="width: 100%; max-width: 540px; padding: 28px; background: var(--bg-secondary); border-top: 3px solid var(--secondary); border-radius: 14px; max-height: 92vh; overflow-y: auto;">
+      <!-- Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--secondary); padding-bottom: 12px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700;">📥 Add Income / Donation</h2>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">Record income or donation from yatri or external donor</p>
+        </div>
+        <button class="btn btn-outline" style="padding: 5px 9px;" (click)="showFinanceModal = false">✕</button>
+      </div>
+
+      <form (submit)="addIncome()" style="display: flex; flex-direction: column; gap: 16px;">
+
+        <!-- ── SOURCE TYPE TOGGLE ── -->
+        <div>
+          <label style="font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); display: block; margin-bottom: 8px;">Select Donor Type</label>
+          <div style="display: flex; border-radius: 10px; overflow: hidden; border: 1.5px solid var(--border-color); background: var(--bg-tertiary);">
+            <button type="button"
+                    (click)="incomeSourceType = 'yatri'; selectedYatriForIncome = null; showYatriIncomeDropdown = false"
+                    [style.background]="incomeSourceType === 'yatri' ? 'var(--primary)' : 'transparent'"
+                    [style.color]="incomeSourceType === 'yatri' ? '#fff' : 'var(--text-secondary)'"
+                    style="flex: 1; padding: 10px 12px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              🙏 Yatri Member
+            </button>
+            <button type="button"
+                    (click)="incomeSourceType = 'external'; selectedYatriForIncome = null"
+                    [style.background]="incomeSourceType === 'external' ? 'var(--secondary)' : 'transparent'"
+                    [style.color]="incomeSourceType === 'external' ? '#fff' : 'var(--text-secondary)'"
+                    style="flex: 1; padding: 10px 12px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              🌟 External Donor
+            </button>
+          </div>
+        </div>
+
+        <!-- ── IF YATRI MEMBER ── -->
+        <div *ngIf="incomeSourceType === 'yatri'" style="position: relative;">
+          <label>Select Yatri Member *</label>
+          <div (click)="toggleYatriIncomeDropdown()"
+               style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #ffffff; border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 14px; margin-top: 4px;"
+               [style.border-color]="incomeSourceType === 'yatri' && !selectedYatriForIncome ? 'var(--primary)' : 'var(--border-color)'">
+            <span style="font-weight: 500;" [style.color]="selectedYatriForIncome ? 'var(--text-primary)' : 'var(--text-muted)'">
+              {{ selectedYatriForIncome ? '✅ ' + selectedYatriForIncome.name + ' (ID: ' + selectedYatriForIncome.id + ')' : '🔍 Search / Select Yatri...' }}
+            </span>
+            <span style="font-size: 10px; color: var(--text-muted);">▼</span>
+          </div>
+          <div *ngIf="showYatriIncomeDropdown"
+               style="position: absolute; left: 0; right: 0; top: 100%; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 1100; margin-top: 4px; padding: 8px; display: flex; flex-direction: column; gap: 6px;">
+            <input type="text" [(ngModel)]="yatriSearchForIncome" name="yatriIncomeSearch"
+                   (input)="filterYatrisForIncome()" placeholder="Type name or ID..."
+                   style="padding: 8px 12px; font-size: 13px; border-radius: 6px;"
+                   (click)="$event.stopPropagation()" />
+            <div style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;">
+              <div *ngFor="let y of (yatriSearchForIncome ? filteredYatrisForIncome : allowedYatris)"
+                   (click)="selectYatriForIncome(y)"
+                   style="padding: 8px 12px; cursor: pointer; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between; align-items: center;"
+                   onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
+                <div>
+                  <span style="font-weight: 600; color: var(--text-primary);">{{ y.name }}</span>
+                  <span style="font-size: 11px; color: var(--text-muted); margin-left: 6px;">{{ y.phone }}</span>
+                </div>
+                <span style="font-size: 11px; color: var(--text-muted);">ID: {{ y.id }}</span>
+              </div>
+              <div *ngIf="yatriSearchForIncome && filteredYatrisForIncome.length === 0"
+                   style="padding: 8px; text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic;">No yatris found</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── IF EXTERNAL DONOR ── -->
+        <div *ngIf="incomeSourceType === 'external'" style="background: rgba(16,185,129,0.05); border: 1.5px solid rgba(16,185,129,0.2); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+          <p style="font-size: 11px; font-weight: 700; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">🌟 External Donor Info</p>
+
+          <!-- Name (required) -->
+          <div>
+            <label style="font-size: 12px; font-weight: 700;">Donor Full Name *</label>
+            <input type="text" [(ngModel)]="externalDonor.name" name="donorName"
+                   placeholder="e.g. Ramesh Patil / Hare Krishna Society"
+                   style="margin-top: 4px; font-size: 13px;" required />
+          </div>
+
+          <!-- Phone + City -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label style="font-size: 12px; font-weight: 700;">Phone Number (optional)</label>
+              <input type="tel" [(ngModel)]="externalDonor.phone" name="donorPhone"
+                     placeholder="10-digit mobile"
+                     maxlength="10"
+                     style="margin-top: 4px; font-size: 13px;" />
+            </div>
+            <div>
+              <label style="font-size: 12px; font-weight: 700;">City (optional)</label>
+              <input type="text" [(ngModel)]="externalDonor.city" name="donorCity"
+                     placeholder="e.g. Pune, Mumbai"
+                     style="margin-top: 4px; font-size: 13px;" />
+            </div>
+          </div>
+
+          <!-- Address -->
+          <div>
+            <label style="font-size: 12px; font-weight: 700;">Address (optional)</label>
+            <input type="text" [(ngModel)]="externalDonor.address" name="donorAddress"
+                   placeholder="e.g. 42, Shivneri Colony, Nashik"
+                   style="margin-top: 4px; font-size: 13px;" />
+          </div>
+
+          <!-- Preview of how it will be saved -->
+          <div *ngIf="externalDonor.name" style="background: rgba(16,185,129,0.08); border-radius: 6px; padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">
+            💾 <strong>Appears in Ledger as:</strong>
+            <span style="color: var(--text-primary); font-weight: 600; margin-left: 4px;">
+              {{ externalDonor.name }}{{ externalDonor.city ? ', ' + externalDonor.city : '' }}{{ externalDonor.phone ? ' (' + externalDonor.phone + ')' : '' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Payment Type + Mode -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div>
+            <label>Donation / Payment Type</label>
+            <select [(ngModel)]="newIncome.type" name="type">
+              <option value="Donation">🙏 Donation</option>
+              <option value="Payment">💳 Yatra Fee</option>
+              <option value="Sponsorship">🌟 Sponsorship</option>
+              <option value="Prasadam Sewa">🍽️ Prasadam Sewa</option>
+              <option value="Miscellaneous">📦 Miscellaneous</option>
+            </select>
+          </div>
+          <div>
+            <label>Payment Mode</label>
+            <select [(ngModel)]="newIncome.mode" name="mode">
+              <option value="UPI">📱 UPI / GPay</option>
+              <option value="Cash">💵 Cash</option>
+              <option value="Net Banking">🏦 Net Banking</option>
+              <option value="Cheque">📄 Cheque</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Amount + Date -->
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px;">
+          <div>
+            <label>Amount (₹) *</label>
+            <input type="number" [(ngModel)]="newIncome.amount" name="amount" required min="1" placeholder="0" style="font-size: 16px; font-weight: 700;" />
+          </div>
+          <div>
+            <label>Date *</label>
+            <input type="date" [(ngModel)]="newIncome.date" name="date" required />
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label>Note / Description (Optional)</label>
+          <input type="text" [(ngModel)]="newIncome.description" name="description" placeholder="e.g. Donation for Kartik Yatra" />
+        </div>
+
+        <!-- Buttons -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 6px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+          <button type="button" class="btn btn-outline" (click)="showFinanceModal = false">Cancel</button>
+          <button type="submit" class="btn btn-primary"
+                  style="background: var(--secondary); border-color: var(--secondary);">
+            💾 Save Income / Donation
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ ADD EXPENSE MODAL ══ -->
+  <div *ngIf="showExpenseModal"
+       style="position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 16px; overflow-y: auto;">
+    <div class="glass-panel" style="width: 100%; max-width: 620px; padding: 28px; background: var(--bg-secondary); border-top: 3px solid var(--danger); border-radius: 12px; max-height: 90vh; overflow-y: auto;">
+
+      <!-- Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-primary);">📤 Add Expense Entry</h2>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">Select volunteer → add items → save</p>
+        </div>
+        <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showExpenseModal = false">✕</button>
+      </div>
+
+      <form (ngSubmit)="addExpense()" style="display: flex; flex-direction: column; gap: 16px;">
+
+        <!-- ── Step 1: Volunteer Selector ── -->
+        <div style="background: var(--bg-tertiary); border-radius: 10px; padding: 14px;">
+          <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); margin-bottom: 10px;">Step 1 · Select Volunteer</p>
+
+          <!-- Department Filter -->
+          <div style="margin-bottom: 8px;">
+            <label style="font-size: 12px; font-weight: 600;">Filter by Department</label>
+            <select [(ngModel)]="expenseDeptFilter" name="expenseDept" style="margin-top: 4px; font-size: 13px;">
+              <option value="">All Departments</option>
+              <option *ngFor="let dept of uniqueDepartments" [value]="dept">{{ dept }}</option>
+            </select>
+          </div>
+
+          <!-- Volunteer Dropdown Trigger -->
+          <div style="position: relative;">
+            <div (click)="toggleExpenseVolDropdown()"
+                 style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #fff; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 13px;">
+              <span style="color: var(--text-primary); font-weight: 500;">
+                {{ selectedExpenseVol ? selectedExpenseVol.name + ' · ' + selectedExpenseVol.assignedDepartment : 'Select volunteer from list...' }}
+              </span>
+              <span style="font-size: 10px; color: var(--text-muted);">▼</span>
+            </div>
+            <!-- Dropdown panel -->
+            <div *ngIf="showExpenseVolDropdown"
+                 style="position: absolute; left: 0; right: 0; top: 100%; background: #fff; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 1200; margin-top: 4px; padding: 8px; display: flex; flex-direction: column; gap: 6px;">
+              <input type="text" [(ngModel)]="expenseVolSearch" name="expenseVolSearch"
+                     placeholder="Search volunteer..."
+                     style="padding: 8px 12px; font-size: 13px; border-radius: 6px;"
+                     (click)="$event.stopPropagation()" />
+              <div style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;">
+                <div *ngFor="let vol of filteredVolsForExpense"
+                     (click)="selectExpenseVolunteer(vol)"
+                     style="padding: 8px 12px; cursor: pointer; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between; align-items: center;"
+                     onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
+                  <span style="font-weight: 600;">{{ vol.name }}</span>
+                  <span style="font-size: 10px; color: var(--text-muted); background: rgba(99,102,241,0.08); padding: 2px 7px; border-radius: 12px;">{{ vol.assignedDepartment }}</span>
+                </div>
+                <div *ngIf="filteredVolsForExpense.length === 0"
+                     style="padding: 8px; text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic;">No volunteer found</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Step 2: Mode + Date + Category ── -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-weight: 600; font-size: 12px;">Category</label>
+            <select [(ngModel)]="newExpense.category" name="category" style="margin-top: 4px; font-size: 13px;">
+              <option *ngFor="let cat of expenseCategoryOptions" [value]="cat">{{ cat }}</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight: 600; font-size: 12px;">Payment Mode</label>
+            <select [(ngModel)]="newExpense.mode" name="mode" style="margin-top: 4px; font-size: 13px;">
+              <option value="Cash">💵 Cash</option>
+              <option value="UPI">📱 UPI</option>
+              <option value="Net Banking">🏦 Net Banking</option>
+              <option value="Cheque">📄 Cheque</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight: 600; font-size: 12px;">Date <span style="color: var(--danger);">*</span></label>
+            <input type="date" [(ngModel)]="newExpense.date" name="date" required style="margin-top: 4px; font-size: 13px;" />
+          </div>
+        </div>
+
+        <!-- ── Step 3: Items Table ── -->
+        <div style="background: var(--bg-tertiary); border-radius: 10px; padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+            <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--danger);">Step 2 · Add Items</p>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <span style="font-size: 11px; color: var(--text-muted);">Quick Add:</span>
+              <button type="button" (click)="addExpenseItem()"
+                      style="font-size: 11px; padding: 4px 8px; background: var(--border-color); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition);"
+                      onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='var(--border-color)'">+1 Row</button>
+              <button type="button" (click)="addMultipleExpenseItems(3)"
+                      style="font-size: 11px; padding: 4px 8px; background: var(--border-color); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition);"
+                      onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='var(--border-color)'">+3 Rows</button>
+              <button type="button" (click)="addMultipleExpenseItems(5)"
+                      style="font-size: 11px; padding: 4px 8px; background: var(--border-color); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition);"
+                      onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='var(--border-color)'">+5 Rows</button>
+            </div>
+          </div>
+
+          <!-- Items header -->
+          <div style="display: grid; grid-template-columns: 2fr 0.7fr 1fr 1fr 0.5fr; gap: 6px; padding: 4px 2px; border-bottom: 1px solid var(--border-color); margin-bottom: 6px;">
+            <span style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Item Name *</span>
+            <span style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Qty</span>
+            <span style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Unit Price ₹</span>
+            <span style="font-size: 10px; font-weight: 700; color: var(--danger); text-transform: uppercase;">Total ₹</span>
+            <span></span>
+          </div>
+
+          <!-- Item rows -->
+          <div *ngFor="let itm of expenseItems; let idx = index"
+               style="display: grid; grid-template-columns: 2fr 0.7fr 1fr 1fr 0.5fr; gap: 6px; align-items: center; margin-bottom: 6px;">
+            <!-- Trigger new row auto-creation on typing -->
+            <input type="text" [(ngModel)]="itm.item" [name]="'item_' + idx"
+                   (input)="onItemNameChange(idx)"
+                   placeholder="Item name (e.g. Potatoes)" style="font-size: 12px; padding: 7px 10px;" />
+            <input type="number" [(ngModel)]="itm.unit" [name]="'unit_' + idx" min="1" style="font-size: 12px; padding: 7px 8px;" />
+            <!-- Trigger new row on pressing Enter in the last price field -->
+            <input type="number" [(ngModel)]="itm.unitPrice" [name]="'unitPrice_' + idx" min="0" placeholder="0"
+                   (keydown.enter)="$event.preventDefault(); idx === expenseItems.length - 1 ? addExpenseItem() : null"
+                   style="font-size: 12px; padding: 7px 8px;" />
+            <div style="font-size: 13px; font-weight: 700; color: var(--danger); padding: 7px 4px;">₹{{ (itm.unit * itm.unitPrice) | number }}</div>
+            <button type="button" (click)="removeExpenseItem(idx)"
+                    style="background: rgba(239,68,68,0.1); color: var(--danger); border: none; border-radius: 6px; cursor: pointer; padding: 6px 8px; font-size: 14px;">✕</button>
+          </div>
+
+          <div *ngIf="expenseItems.length === 0" style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 8px;">No items added. Click '+1 Row'.</div>
+
+          <!-- Items Total -->
+          <div *ngIf="expenseItems.length > 0" style="display: flex; justify-content: flex-end; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-color);">
+            <span style="font-size: 14px; font-weight: 800; color: var(--danger);">Grand Total: ₹{{ expenseTotal | number }}</span>
+          </div>
+        </div>
+
+        <!-- ── Remarks + Approved By ── -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-weight: 600; font-size: 12px;">Description / Remarks</label>
+            <input type="text" [(ngModel)]="newExpense.description" name="description" placeholder="Optional notes" style="margin-top: 4px; font-size: 13px;" />
+          </div>
+          <div>
+            <label style="font-weight: 600; font-size: 12px;">Approved By</label>
+            <input type="text" [(ngModel)]="newExpense.approvedBy" name="approvedBy" placeholder="Manager name" style="margin-top: 4px; font-size: 13px;" />
+          </div>
+        </div>
+
+        <!-- ── Receipt / Bill Photo Attachment ── -->
+        <div style="background: var(--bg-primary); border: 1.5px dashed #6366f1; border-radius: 10px; padding: 12px; margin-top: 4px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <label style="font-weight: 800; font-size: 12px; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                📷 Vendor Bill / Receipt Photo (पावतीचा फोटो अपलोड करा)
+              </label>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0 0;">Mobile मध्ये कॅमेरा किंवा गॅलरीतून बिलचा फोटो अटॅच करा</p>
+            </div>
+
+            <button type="button" class="btn btn-outline" (click)="receiptInput.click()"
+                    style="font-size: 12px; padding: 6px 14px; border-color: #6366f1; color: #6366f1; font-weight: 700;">
+              📷 Capture / Select Photo
+            </button>
+            <input type="file" #receiptInput (change)="onReceiptFileSelected($event)" accept="image/*" capture="environment" style="display: none;" />
+          </div>
+
+          <!-- Live Receipt Preview Thumbnail -->
+          <div *ngIf="newExpense.receiptUrl" style="margin-top: 10px; display: flex; align-items: center; gap: 12px; background: rgba(99,102,241,0.08); padding: 8px 12px; border-radius: 8px;">
+            <img [src]="newExpense.receiptUrl" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #6366f1;" />
+            <div style="flex: 1;">
+              <div style="font-size: 12px; font-weight: 700; color: #10b981;">✓ Receipt Photo Attached</div>
+              <div style="font-size: 10px; color: var(--text-muted);">Vendor bill captured</div>
+            </div>
+            <button type="button" class="btn btn-outline" style="padding: 2px 8px; font-size: 11px; color: #ef4444; border-color: #ef4444;" (click)="newExpense.receiptUrl = ''">✕ Remove</button>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 4px;">
+          <div style="font-size: 12px; color: var(--text-muted);">
+            <span *ngIf="selectedExpenseVol">👤 {{ selectedExpenseVol.name }}</span>
+            <span *ngIf="expenseItems.length > 0"> · {{ expenseItems.length }} item(s) · <strong style="color: var(--danger);">₹{{ expenseTotal | number }}</strong></span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn btn-outline" style="padding: 10px 18px;" (click)="showExpenseModal = false">Cancel</button>
+            <button type="submit" class="btn btn-primary"
+                    style="padding: 10px 22px; background: var(--danger); border-color: var(--danger); font-weight: 700;">
+              💾 Save Expense
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+
+
+  <div *ngIf="showVolunteerModal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+    <div class="glass-panel" style="width: 100%; max-width: 780px; padding: 28px; background: var(--bg-secondary); border-top: 3px solid var(--primary); border-radius: 12px; animation: fadeIn 0.3s ease;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h2 style="font-size: 20px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+          <span>{{ isEditVolunteer ? '✏️' : '➕' }}</span> {{ isEditVolunteer ? 'Edit Volunteer' : 'Add Volunteer' }}
+        </h2>
+        <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showVolunteerModal = false">✕</button>
+      </div>
+
+      <form (submit)="addVolunteer()" style="display: flex; flex-direction: column; gap: 18px;">
+        
+        <!-- Row 1: Name, Phone, Advance, Department -->
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr 0.8fr 1fr; gap: 14px;">
+          
+          <!-- 1. Volunteer Name (from Yatri List) -->
+          <div style="position: relative;">
+            <label style="font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+              <span>👤</span> Volunteer Name (from Yatri List)
+            </label>
+            <div (click)="toggleYatriDropdown()" 
+                 style="margin-top: 4px; display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 13px;">
+              <span style="font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                {{ selectedYatriForVolunteer ? selectedYatriForVolunteer.name : (newVolunteer.name || 'Search pilgrim name...') }}
+              </span>
+              <span style="font-size: 10px; color: var(--text-muted);">▼</span>
+            </div>
+
+            <!-- Dropdown Options Panel -->
+            <div *ngIf="showYatriDropdown" 
+                 style="position: absolute; left: 0; right: 0; top: 100%; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow-lg); z-index: 1100; margin-top: 4px; padding: 8px; display: flex; flex-direction: column; gap: 6px;">
+              <input type="text" 
+                     [(ngModel)]="yatriSearchQuery" 
+                     name="yatriSearch" 
+                     (input)="filterYatrisForVolunteer()"
+                     placeholder="Search pilgrim name..." 
+                     style="padding: 7px 10px; font-size: 12px; border-radius: 6px;" 
+                     (click)="$event.stopPropagation()" />
+              
+              <div style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;">
+                <div *ngFor="let yatri of (yatriSearchQuery ? filteredYatris : allowedYatris)" 
+                     (click)="selectYatriFromDropdown(yatri)"
+                     style="padding: 7px 10px; cursor: pointer; border-radius: 6px; font-size: 12px; display: flex; justify-content: space-between; align-items: center;"
+                     onmouseover="this.style.background='var(--bg-tertiary)'" 
+                     onmouseout="this.style.background='transparent'">
+                  <span style="font-weight: 500; color: var(--text-primary);">{{ yatri.name }}</span>
+                  <span style="font-size: 10px; color: var(--text-muted);">ID: {{ yatri.id }}</span>
+                </div>
+                <div *ngIf="yatriSearchQuery && filteredYatris.length === 0" style="padding: 8px; text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic;">
+                  No pilgrim matches found
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Mobile Phone -->
+          <div>
+            <label style="font-weight: 600; font-size: 12px;">Mobile Phone</label>
+            <input type="text" [(ngModel)]="newVolunteer.phone" name="volPhone" placeholder="Auto-filled or enter number" style="margin-top: 4px; font-size: 13px;" required />
+          </div>
+
+          <!-- 3. Advance Given (₹) -->
+          <div>
+            <label style="font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+              <span>💵</span> Advance Given (₹)
+            </label>
+            <input type="number" [(ngModel)]="newVolunteer.advanceAmount" name="advanceAmount" min="0" placeholder="0" style="margin-top: 4px; font-size: 13px;" />
+          </div>
+
+          <!-- 4. Assigned Department -->
+          <div>
+            <label style="font-weight: 600; font-size: 12px;">Assigned Department</label>
+            <select [(ngModel)]="newVolunteer.assignedDepartment" name="dept" style="margin-top: 4px; font-size: 13px;">
+              <option *ngFor="let dept of departmentNames" [value]="dept">{{ dept }}</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Row 2: Shift details, Duty Location -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          
+          <!-- 5. Shift details -->
+          <div>
+            <label style="font-weight: 600; font-size: 12px;">Shift details</label>
+            <select [(ngModel)]="newVolunteer.shift" name="shift" style="margin-top: 4px; font-size: 13px;">
+              <option value="Morning (6 AM - 2 PM)">Morning (6 AM - 2 PM)</option>
+              <option value="Evening (2 PM - 10 PM)">Evening (2 PM - 10 PM)</option>
+              <option value="Night (10 PM - 6 AM)">Night (10 PM - 6 AM)</option>
+            </select>
+          </div>
+
+          <!-- 6. Duty Location -->
+          <div>
+            <label style="font-weight: 600; font-size: 12px;">Duty Location</label>
+            <input type="text" [(ngModel)]="newVolunteer.dutyLocation" name="loc" placeholder="e.g. Dining Hall, Gate 2" required style="margin-top: 4px; font-size: 13px;" />
+          </div>
+
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+          <button type="button" class="btn btn-outline" (click)="showVolunteerModal = false">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-weight: 700;" [disabled]="!newVolunteer.name">
+            {{ isEditVolunteer ? '💾 Update Volunteer' : '➕ Save Volunteer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<style>
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+</style>
+
+
+<!-- ══════════════════════════════════════════════════════
+     EXPENSE DELETE CONFIRM MODAL
+══════════════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════════
+     EXPENSE DELETE CONFIRM MODAL
+══════════════════════════════════════════════════════ -->
+<div *ngIf="showExpenseDeleteConfirm"
+     class="modal-overlay"
+     (click)="showExpenseDeleteConfirm = false; expenseToDelete = null">
+  <div class="glass-panel" (click)="$event.stopPropagation()" style="width: 100%; max-width: 400px; padding: 28px; background: var(--bg-secondary); border-top: 3px solid var(--danger); text-align: center;">
+    <div style="font-size: 44px; margin-bottom: 12px;">🗑️</div>
+    <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--danger);">Delete Expense?</h2>
+    <div style="background: rgba(239,68,68,0.06); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; text-align: left;">
+      <div style="font-size: 13px; font-weight: 700; color: var(--text-primary);">{{ expenseToDelete?.paidTo }}</div>
+      <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
+        <span *ngIf="expenseToDelete?.department">{{ expenseToDelete?.department }} · </span>
+        {{ expenseToDelete?.category }} · {{ expenseToDelete?.date }}
+      </div>
+      <div style="font-size: 16px; font-weight: 800; color: var(--danger); margin-top: 6px;">−₹{{ expenseToDelete?.amount | number }}</div>
+    </div>
+    <p style="font-size: 12px; color: var(--danger); margin-bottom: 16px; font-style: italic;">⚠️ This record will be permanently deleted!</p>
+    <div style="display: flex; justify-content: center; gap: 12px;">
+      <button class="btn btn-outline" (click)="showExpenseDeleteConfirm = false; expenseToDelete = null">Cancel</button>
+      <button class="btn btn-outline"
+              style="border-color: var(--danger); color: var(--danger); font-weight: 700;"
+              (click)="confirmDeleteExpense()">🗑️ Yes, Delete</button>
+    </div>
+  </div>
+</div>
+<!-- ══════════════════════════════════════════════════════
+     VOLUNTEER DELETE CONFIRM MODAL
+══════════════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════════
+     VOLUNTEER DELETE CONFIRM MODAL
+══════════════════════════════════════════════════════ -->
+<div *ngIf="showVolDeleteConfirm"
+     class="modal-overlay"
+     (click)="showVolDeleteConfirm = false; volToDelete = null">
+  <div class="glass-panel" (click)="$event.stopPropagation()" style="width: 100%; max-width: 420px; padding: 28px; background: var(--bg-secondary); border-top: 3px solid var(--danger); text-align: center;">
+    <div style="font-size: 44px; margin-bottom: 12px;">🗑️</div>
+    <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--danger);">Delete Volunteer?</h2>
+    <div style="background: rgba(239,68,68,0.06); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; text-align: left;">
+      <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">{{ volToDelete?.name }}</div>
+      <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
+        {{ volToDelete?.assignedDepartment }} · {{ volToDelete?.phone }}
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+        Location: {{ volToDelete?.dutyLocation }} · Shift: {{ volToDelete?.shift }}
+      </div>
+    </div>
+    <p style="font-size: 12px; color: var(--danger); margin-bottom: 22px; font-style: italic;">⚠️ This volunteer's record will be permanently deleted!</p>
+    <div style="display: flex; justify-content: center; gap: 12px;">
+      <button class="btn btn-outline" (click)="showVolDeleteConfirm = false; volToDelete = null">Cancel</button>
+      <button class="btn btn-outline"
+              style="border-color: var(--danger); color: var(--danger); font-weight: 700;"
+              (click)="confirmDeleteVolunteer()">🗑️ Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TRANSFER DELETE CONFIRM MODAL
+══════════════════════════════════════════════════════ -->
+<div *ngIf="showTransferDeleteConfirm"
+     class="modal-overlay"
+     (click)="showTransferDeleteConfirm = false; transferToDelete = null">
+  <div class="glass-panel" (click)="$event.stopPropagation()" style="width: 100%; max-width: 400px; padding: 28px; background: var(--bg-secondary); border-top: 3px solid var(--danger); text-align: center;">
+    <div style="font-size: 44px; margin-bottom: 12px;">🔄</div>
+    <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--danger);">Delete Transfer?</h2>
+    <div style="background: rgba(239,68,68,0.06); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; text-align: left;">
+      <div style="font-size: 13px; font-weight: 700; color: var(--text-primary);">
+        {{ getVolunteerName(transferToDelete?.fromId) }} → {{ getVolunteerName(transferToDelete?.toId) }}
+      </div>
+      <div style="font-size: 15px; font-weight: 800; color: var(--danger); margin-top: 6px;">₹{{ transferToDelete?.amount | number }}</div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">{{ transferToDelete?.date }}<span *ngIf="transferToDelete?.note"> · {{ transferToDelete?.note }}</span></div>
+    </div>
+    <p style="font-size: 12px; color: var(--danger); margin-bottom: 22px; font-style: italic;">⚠️ This transfer record will be permanently deleted!</p>
+    <div style="display: flex; justify-content: center; gap: 12px;">
+      <button class="btn btn-outline" (click)="showTransferDeleteConfirm = false; transferToDelete = null">Cancel</button>
+      <button class="btn btn-outline"
+              style="border-color: var(--danger); color: var(--danger); font-weight: 700;"
+              (click)="confirmDeleteTransfer()">🗑️ Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     UNIFIED TRANSACTION DELETE CONFIRM MODAL
+══════════════════════════════════════════════════════ -->
+<div *ngIf="showUnifiedDeleteConfirm"
+     class="modal-overlay"
+     (click)="showUnifiedDeleteConfirm = false; unifiedToDelete = null">
+  <div class="glass-panel" (click)="$event.stopPropagation()" style="width: 100%; max-width: 420px; padding: 28px; background: var(--bg-secondary); border-top: 3px solid var(--danger); text-align: center;">
+    <div style="font-size: 44px; margin-bottom: 12px;">🗑️</div>
+    <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--danger);">Delete Transaction?</h2>
+    <div style="background: rgba(239,68,68,0.06); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; text-align: left;">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+        <span class="badge" [style.background]="unifiedToDelete?.kind === 'Income' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)'" [style.color]="unifiedToDelete?.kind === 'Income' ? 'var(--secondary)' : 'var(--danger)'">{{ unifiedToDelete?.kind }}</span>
+      </div>
+      <div style="font-size: 13px; font-weight: 700; color: var(--text-primary);">{{ unifiedToDelete?.party }}</div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">{{ unifiedToDelete?.date }} · {{ unifiedToDelete?.mode }}</div>
+      <div style="font-size: 16px; font-weight: 800; margin-top: 6px;" [style.color]="unifiedToDelete?.kind === 'Income' ? 'var(--secondary)' : 'var(--danger)'">₹{{ unifiedToDelete?.amount | number }}</div>
+    </div>
+    <p style="font-size: 12px; color: var(--danger); margin-bottom: 22px; font-style: italic;">⚠️ This transaction will be permanently deleted!</p>
+    <div style="display: flex; justify-content: center; gap: 12px;">
+      <button class="btn btn-outline" (click)="showUnifiedDeleteConfirm = false; unifiedToDelete = null">Cancel</button>
+      <button class="btn btn-outline"
+              style="border-color: var(--danger); color: var(--danger); font-weight: 700;"
+              (click)="confirmDeleteUnified()">🗑️ Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     VALIDATION ALERT TOAST
+══════════════════════════════════════════════════════ -->
+<div *ngIf="showValidationAlert"
+     style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; background: var(--bg-secondary); border: 1.5px solid var(--danger); border-radius: 10px; padding: 14px 22px; box-shadow: 0 8px 24px rgba(0,0,0,0.18); display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--danger); max-width: 520px; animation: fadeIn 0.2s ease;">
+  <span style="font-size: 20px;">⚠️</span>
+  <span>{{ validationAlertMessage }}</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     WHATSAPP THANK YOU RECEIPT MODAL
+══════════════════════════════════════════════════════ -->
+<div *ngIf="showThankYouModal"
+     class="modal-overlay"
+     (click)="showThankYouModal = false">
+  <div class="glass-panel" (click)="$event.stopPropagation()" style="width: 100%; max-width: 520px; padding: 26px; background: var(--bg-secondary); border-top: 4px solid #25D366; border-radius: 14px; max-height: 90vh; overflow-y: auto;">
+    
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 28px;">💬</span>
+        <div>
+          <h2 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0;">Send WhatsApp Receipt</h2>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Send thank you receipt to donor via WhatsApp</p>
+        </div>
+      </div>
+      <button class="btn btn-outline" style="padding: 5px 9px;" (click)="showThankYouModal = false">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      
+      <!-- Amount & Recipient Badge -->
+      <div style="background: rgba(37, 211, 102, 0.08); border: 1.5px solid rgba(37, 211, 102, 0.3); border-radius: 10px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #16a34a;">Donation Received</div>
+          <div style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin-top: 2px;">{{ thankYouRecipientName }}</div>
+        </div>
+        <div style="font-size: 22px; font-weight: 900; color: #16a34a;">+₹{{ thankYouAmount | number }}</div>
+      </div>
+
+      <!-- Phone Number Field -->
+      <div>
+        <label style="font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+          📱 Donor Mobile Number (WhatsApp) *
+        </label>
+        <input type="tel" [(ngModel)]="thankYouPhone" name="thankYouPhone"
+               placeholder="10-digit mobile (e.g. 9876543210)"
+               maxlength="10"
+               style="margin-top: 4px; font-size: 14px; font-weight: 600;" required />
+        <p *ngIf="!thankYouPhone" style="font-size: 11px; color: var(--danger); margin-top: 4px;">⚠️ Please enter 10-digit mobile number.</p>
+      </div>
+
+      <!-- Message Preview / Customizer -->
+      <div>
+        <label style="font-weight: 700; font-size: 12px; display: flex; justify-content: space-between;">
+          <span>📝 WhatsApp Message Draft</span>
+          <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">English/Marathi</span>
+        </label>
+        <textarea [(ngModel)]="thankYouMessage" name="thankYouMessage" rows="9"
+                  style="margin-top: 6px; width: 100%; font-family: monospace; font-size: 12px; line-height: 1.5; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); resize: vertical;"></textarea>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 4px;">
+        <button type="button" class="btn btn-outline" (click)="showThankYouModal = false">Cancel</button>
+        <button type="button" class="btn btn-primary"
+                style="background: #25D366; border-color: #25D366; font-weight: 800; font-size: 14px; padding: 10px 20px; display: flex; align-items: center; gap: 6px;"
+                (click)="sendThankYouWhatsApp()">
+          📲 Send WhatsApp Message
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     UNIFIED TRANSACTION MODAL (Income / Expense / Transfer)
+══════════════════════════════════════════════════════ -->
+<div *ngIf="showUnifiedFinanceModal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+  <div class="glass-panel" style="width: 100%; max-width: 580px; padding: 28px; background: var(--bg-secondary); border-top: 4px solid var(--primary); border-radius: 12px; animation: fadeIn 0.3s ease; max-height: 90vh; overflow-y: auto;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+      <h2 style="font-size: 19px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+        <span>💳</span> Add Financial Transaction
+      </h2>
+      <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showUnifiedFinanceModal = false">✕</button>
+    </div>
+
+    <form (submit)="saveUnifiedTransaction()" style="display: flex; flex-direction: column; gap: 16px;">
+      
+      <!-- Transaction Type 3-Way Switch (Only visible for KasAuthority & ServiceIncharge) -->
+      <div *ngIf="canViewFinance">
+        <label style="font-weight: 700; font-size: 12px; margin-bottom: 6px; display: block;">Transaction Type</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; background: rgba(0,0,0,0.04); padding: 5px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <button type="button" 
+                  (click)="openUnifiedFinanceModal('Income')"
+                  [style.background]="unifiedFinance.kind === 'Income' ? 'var(--secondary)' : 'transparent'"
+                  [style.color]="unifiedFinance.kind === 'Income' ? '#ffffff' : 'var(--text-primary)'"
+                  style="padding: 10px 6px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; transition: var(--transition); font-size: 12px;">
+            🟢 1. Income
+          </button>
+          <button type="button" 
+                  (click)="openUnifiedFinanceModal('Expense')"
+                  [style.background]="unifiedFinance.kind === 'Expense' ? 'var(--danger)' : 'transparent'"
+                  [style.color]="unifiedFinance.kind === 'Expense' ? '#ffffff' : 'var(--text-primary)'"
+                  style="padding: 10px 6px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; transition: var(--transition); font-size: 12px;">
+            🔴 2. Expense
+          </button>
+          <button type="button" 
+                  (click)="openUnifiedFinanceModal('Transfer')"
+                  [style.background]="unifiedFinance.kind === 'Transfer' ? '#2563EB' : 'transparent'"
+                  [style.color]="unifiedFinance.kind === 'Transfer' ? '#ffffff' : 'var(--text-primary)'"
+                  style="padding: 10px 6px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; transition: var(--transition); font-size: 12px;">
+            🔵 3. Advance Transfer
+          </button>
+        </div>
+      </div>
+      <!-- Volunteer Badge Header if !canViewFinance -->
+      <div *ngIf="!canViewFinance" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; padding: 10px; text-align: center; font-weight: 700; color: var(--danger); font-size: 13px;">
+        🔴 {{ userDepartment }} Department Expense Record
+      </div>
+
+      <!-- 1. Select Yatri Member / Volunteer Dropdown (FIRST) -->
+      <!-- If Transfer selected: Select Volunteer Dropdown -->
+      <div *ngIf="unifiedFinance.kind === 'Transfer'">
+        <label style="font-weight: 600; font-size: 12px;">Select Volunteer *</label>
+        <select [(ngModel)]="unifiedFinance.volunteerId" (change)="onUnifiedVolunteerSelect(unifiedFinance.volunteerId)" name="uVolSelect" style="margin-top: 4px; font-size: 13px; padding: 10px;">
+          <option value="" disabled>-- Select Volunteer --</option>
+          <option *ngFor="let vol of filteredVolunteers" [value]="vol.id">
+            👤 {{ vol.name }} ({{ vol.assignedDepartment || 'General' }})
+          </option>
+        </select>
+      </div>
+
+      <!-- If Expense selected: Select Volunteer Dropdown (Optional) -->
+      <div *ngIf="unifiedFinance.kind === 'Expense'">
+        <label style="font-weight: 600; font-size: 12px;">Select Volunteer (Optional)</label>
+        <select [(ngModel)]="unifiedFinance.volunteerId" (change)="onUnifiedVolunteerSelect(unifiedFinance.volunteerId)" name="uVolSelect" style="margin-top: 4px; font-size: 13px; padding: 10px;">
+          <option value="">-- No Volunteer / General --</option>
+          <option *ngFor="let vol of filteredVolunteers" [value]="vol.id">
+            👤 {{ vol.name }} ({{ vol.assignedDepartment || 'General' }})
+          </option>
+        </select>
+      </div>
+
+      <!-- If Income selected: Yatri Dropdown List -->
+      <div *ngIf="unifiedFinance.kind === 'Income'" style="position: relative;">
+        <label style="font-weight: 600; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <span>Select Yatri Member</span>
+        </label>
+        <div (click)="toggleYatriIncomeDropdown()"
+             style="margin-top: 4px; display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 13px;">
+          <span style="color: var(--text-primary); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            {{ selectedYatriForIncome ? selectedYatriForIncome.name + ' (ID: ' + selectedYatriForIncome.id + ')' : (unifiedFinance.party ? unifiedFinance.party : '🔍 Choose pilgrim member...') }}
+          </span>
+          <span style="font-size: 10px; color: var(--text-muted);">▼</span>
+        </div>
+        <!-- Yatri Dropdown Options -->
+        <div *ngIf="showYatriIncomeDropdown"
+             style="position: absolute; left: 0; right: 0; top: 100%; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow-lg); z-index: 1200; margin-top: 4px; padding: 8px; display: flex; flex-direction: column; gap: 6px;">
+          <input type="text" [(ngModel)]="yatriSearchForIncome" name="uYatriSearch"
+                 (input)="filterYatrisForIncome()" placeholder="Search pilgrim name or phone..."
+                 style="padding: 8px 12px; font-size: 13px; border-radius: 6px;"
+                 (click)="$event.stopPropagation()" />
+          <div style="max-height: 170px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;">
+            <div *ngFor="let y of (yatriSearchForIncome ? filteredYatrisForIncome : allowedYatris)"
+                 (click)="selectYatriForIncome(y)"
+                 style="padding: 8px 12px; cursor: pointer; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between; align-items: center;"
+                 onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
+              <span style="font-weight: 600; color: var(--text-primary);">{{ y.name }}</span>
+              <span style="font-size: 11px; color: var(--text-muted);">ID: {{ y.id }} {{ y.phone ? '· ' + y.phone : '' }}</span>
+            </div>
+            <div *ngIf="yatriSearchForIncome && filteredYatrisForIncome.length === 0"
+                 style="padding: 8px; text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic;">
+              No pilgrim found
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Party / Vendor Name (SECOND) -->
+      <div>
+        <label style="font-weight: 600; font-size: 12px;">
+          {{ unifiedFinance.kind === 'Income' ? 'Received From / Name *' : (unifiedFinance.kind === 'Transfer' ? 'Volunteer / Person Name *' : 'Paid To / Vendor *') }}
+        </label>
+        <input type="text" [(ngModel)]="unifiedFinance.party" name="party" [placeholder]="unifiedFinance.kind === 'Income' ? 'Select above or enter Pilgrim/Donor Name' : (unifiedFinance.kind === 'Transfer' ? 'Volunteer Name' : 'Enter Vendor or Recipient Name')" required style="margin-top: 4px; font-size: 13px;" />
+      </div>
+
+      <!-- 3. Transaction Date * (THIRD) -->
+      <div>
+        <label style="font-weight: 600; font-size: 12px;">Transaction Date *</label>
+        <input type="date" [(ngModel)]="unifiedFinance.date" name="txDate" required style="margin-top: 4px; font-size: 13px;" />
+      </div>
+
+      <!-- 4. Category & Payment Mode (FOURTH) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div>
+          <label style="font-weight: 600; font-size: 12px;">Category</label>
+          <select *ngIf="unifiedFinance.kind === 'Income'" [(ngModel)]="unifiedFinance.category" name="cat" style="margin-top: 4px; font-size: 13px;">
+            <option value="Payment">Payment</option>
+            <option value="Donation">Donation</option>
+            <option value="Sponsorship">Sponsorship</option>
+            <option value="Other">Other</option>
+          </select>
+          <select *ngIf="unifiedFinance.kind === 'Expense'" [(ngModel)]="unifiedFinance.category" name="cat" style="margin-top: 4px; font-size: 13px;">
+            <option *ngFor="let cat of unifiedExpenseCategoryOptions" [value]="cat">{{ cat }}</option>
+          </select>
+          <select *ngIf="unifiedFinance.kind === 'Transfer'" [(ngModel)]="unifiedFinance.category" name="cat" style="margin-top: 4px; font-size: 13px;">
+            <option value="Volunteer Advance">Volunteer Advance Transfer</option>
+            <option value="Emergency Advance">Emergency Advance</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-weight: 600; font-size: 12px;">Payment Mode</label>
+          <select [(ngModel)]="unifiedFinance.mode" name="mode" style="margin-top: 4px; font-size: 13px;">
+            <option value="UPI">UPI / PhonePe / GPay</option>
+            <option value="Cash">Cash</option>
+            <option value="Bank Transfer">Bank Transfer / NEFT</option>
+            <option value="Cheque">Cheque</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- If Expense: Items Builder -->
+      <div *ngIf="unifiedFinance.kind === 'Expense'" style="background: var(--bg-tertiary); border-radius: 10px; padding: 14px; margin-bottom: 4px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+          <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--danger);">Add Purchased Items</p>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <span style="font-size: 11px; color: var(--text-muted);">Quick Add:</span>
+            <button type="button" (click)="addExpenseItem()"
+                    style="font-size: 11px; padding: 4px 8px; background: var(--border-color); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition);">+1 Row</button>
+            <button type="button" (click)="addMultipleExpenseItems(3)"
+                    style="font-size: 11px; padding: 4px 8px; background: var(--border-color); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition);">+3 Rows</button>
+          </div>
+        </div>
+
+        <!-- Items header -->
+        <div style="display: grid; grid-template-columns: 2fr 0.7fr 1fr 1fr 0.5fr; gap: 6px; padding: 4px 2px; border-bottom: 1px solid var(--border-color); margin-bottom: 6px;">
+          <span style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Item Name *</span>
+          <span style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Qty</span>
+          <span style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Unit Price ₹</span>
+          <span style="font-size: 10px; font-weight: 700; color: var(--danger); text-transform: uppercase;">Total ₹</span>
+          <span></span>
+        </div>
+
+        <!-- Item rows -->
+        <div *ngFor="let itm of expenseItems; let idx = index"
+             style="display: grid; grid-template-columns: 2fr 0.7fr 1fr 1fr 0.5fr; gap: 6px; align-items: center; margin-bottom: 6px;">
+          <input type="text" [(ngModel)]="itm.item" [name]="'itm_name_' + idx"
+                 (input)="onItemNameChange(idx)"
+                 placeholder="e.g. Potatoes" style="font-size: 12px; padding: 7px 10px;" />
+          <input type="number" [(ngModel)]="itm.unit" [name]="'itm_unit_' + idx" min="1" style="font-size: 12px; padding: 7px 8px;" />
+          <input type="number" [(ngModel)]="itm.unitPrice" [name]="'itm_price_' + idx" min="0" placeholder="0"
+                 (keydown.enter)="$event.preventDefault(); idx === expenseItems.length - 1 ? addExpenseItem() : null"
+                 style="font-size: 12px; padding: 7px 8px;" />
+          <div style="font-size: 13px; font-weight: 700; color: var(--danger); padding: 7px 4px;">₹{{ (itm.unit * itm.unitPrice) | number }}</div>
+          <button type="button" (click)="removeExpenseItem(idx)"
+                  style="background: rgba(239,68,68,0.1); color: var(--danger); border: none; border-radius: 6px; cursor: pointer; padding: 6px 8px; font-size: 14px;">✕</button>
+        </div>
+
+        <!-- Items Total -->
+        <div *ngIf="expenseItems.length > 0" style="display: flex; justify-content: flex-end; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-color);">
+          <span style="font-size: 14px; font-weight: 800; color: var(--danger);">Grand Total: ₹{{ expenseTotal | number }}</span>
+        </div>
+      </div>
+
+      <!-- 5. Amount (FIFTH) -->
+      <div>
+        <label style="font-weight: 600; font-size: 12px;">Amount (₹) *</label>
+        <input *ngIf="unifiedFinance.kind !== 'Expense'" type="number" [(ngModel)]="unifiedFinance.amount" name="amount" min="1" placeholder="0" required style="margin-top: 4px; font-size: 13px;" />
+        <input *ngIf="unifiedFinance.kind === 'Expense'" type="number" [value]="expenseTotal > 0 ? expenseTotal : (unifiedFinance.amount || 0)" (input)="unifiedFinance.amount = $any($event.target).value" name="amount" min="1" placeholder="0" [readOnly]="expenseTotal > 0" required style="margin-top: 4px; font-size: 13px; font-weight: bold; color: var(--danger);" />
+      </div>
+
+      <!-- 6. Description / Remarks (SIXTH) -->
+      <div>
+        <label style="font-weight: 600; font-size: 12px;">Remarks / Note</label>
+        <input type="text" [(ngModel)]="unifiedFinance.description" name="desc" placeholder="Optional notes..." style="margin-top: 4px; font-size: 13px;" />
+      </div>
+
+      <!-- ── 7. Receipt / Bill Photo Attachment (FOR EXPENSE) ── -->
+      <div *ngIf="unifiedFinance.kind === 'Expense'" style="background: var(--bg-primary); border: 1.5px dashed #6366f1; border-radius: 10px; padding: 12px; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <label style="font-weight: 800; font-size: 12px; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+              📷 Vendor Bill / Receipt Photo (पावतीचा फोटो अटॅच करा)
+            </label>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0 0;">Mobile मध्ये कॅमेरा किंवा गॅलरीतून बिलचा फोटो अटॅच करा</p>
+          </div>
+
+          <button type="button" class="btn btn-outline" (click)="uReceiptInput.click()"
+                  style="font-size: 12px; padding: 6px 14px; border-color: #6366f1; color: #6366f1; font-weight: 700;">
+            📷 Capture / Select Photo
+          </button>
+          <input type="file" #uReceiptInput (change)="onUnifiedReceiptFileSelected($event)" accept="image/*" capture="environment" style="display: none;" />
+        </div>
+
+        <!-- Live Receipt Preview Thumbnail -->
+        <div *ngIf="unifiedFinance.receiptUrl" style="margin-top: 10px; display: flex; align-items: center; gap: 12px; background: rgba(99,102,241,0.08); padding: 8px 12px; border-radius: 8px;">
+          <img [src]="unifiedFinance.receiptUrl" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #6366f1;" />
+          <div style="flex: 1;">
+            <div style="font-size: 12px; font-weight: 700; color: #10b981;">✓ Receipt Photo Attached</div>
+            <div style="font-size: 10px; color: var(--text-muted);">Vendor bill captured</div>
+          </div>
+          <button type="button" class="btn btn-outline" style="padding: 2px 8px; font-size: 11px; color: #ef4444; border-color: #ef4444;" (click)="unifiedFinance.receiptUrl = ''">✕ Remove</button>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+        <button type="button" class="btn btn-outline" (click)="showUnifiedFinanceModal = false">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-weight: 700;" [disabled]="!unifiedFinance.party || !(unifiedFinance.amount || (unifiedFinance.kind === 'Expense' && expenseTotal > 0))">
+          💾 Save {{ unifiedFinance.kind }} Transaction
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     GIVE VOLUNTEER ADVANCE MODAL (From Finance Tab)
+══════════════════════════════════════════════════════ -->
+<div *ngIf="showGiveAdvanceModal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+  <div class="glass-panel" style="width: 100%; max-width: 500px; padding: 28px; background: var(--bg-secondary); border-top: 4px solid var(--primary); border-radius: 12px; animation: fadeIn 0.3s ease;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+      <h2 style="font-size: 19px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+        <span>💸</span> Give Volunteer Advance
+      </h2>
+      <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showGiveAdvanceModal = false">✕</button>
+    </div>
+
+    <form (submit)="saveVolunteerAdvance()" style="display: flex; flex-direction: column; gap: 16px;">
+      
+      <!-- Select Volunteer -->
+      <div>
+        <label style="font-weight: 700; font-size: 12px; margin-bottom: 6px; display: block;">Select Volunteer *</label>
+        <select [(ngModel)]="advanceForm.volunteerId" name="advVolId" required style="font-size: 13px; padding: 10px;">
+          <option value="" disabled>-- Select Volunteer --</option>
+          <option *ngFor="let vol of filteredVolunteers" [value]="vol.id">
+            👤 {{ vol.name }} ({{ vol.assignedDepartment || 'General' }}) — Balance: ₹{{ getVolunteerBalance(vol.id) | number }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Advance Amount & Date -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div>
+          <label style="font-weight: 600; font-size: 12px;">Advance Amount (₹) *</label>
+          <input type="number" [(ngModel)]="advanceForm.amount" name="advAmount" min="1" placeholder="Enter amount" required style="margin-top: 4px; font-size: 13px;" />
+        </div>
+        <div>
+          <label style="font-weight: 600; font-size: 12px;">Date *</label>
+          <input type="date" [(ngModel)]="advanceForm.date" name="advDate" required style="margin-top: 4px; font-size: 13px;" />
+        </div>
+      </div>
+
+      <!-- Mode & Note -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div>
+          <label style="font-weight: 600; font-size: 12px;">Payment Mode</label>
+          <select [(ngModel)]="advanceForm.mode" name="advMode" style="margin-top: 4px; font-size: 13px;">
+            <option value="Cash">Cash</option>
+            <option value="UPI">UPI / PhonePe</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-weight: 600; font-size: 12px;">Remarks / Note</label>
+          <input type="text" [(ngModel)]="advanceForm.remarks" name="advRemarks" placeholder="Reason or note..." style="margin-top: 4px; font-size: 13px;" />
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+        <button type="button" class="btn btn-outline" (click)="showGiveAdvanceModal = false">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-weight: 700;" [disabled]="!advanceForm.volunteerId || !advanceForm.amount">
+          💾 Give Advance
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+<style>
+@keyframes fadeInModal { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes scanLineMove {
+  0% { top: 0px; }
+  50% { top: 236px; }
+  100% { top: 0px; }
+}
+
+.table-scrollbar {
+  max-height: 500px;
+  overflow-y: auto;
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary, #6366f1) var(--bg-tertiary, #f1f5f9);
+}
+
+.table-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.table-scrollbar::-webkit-scrollbar-track {
+  background: var(--bg-tertiary, #f1f5f9);
+  border-radius: 4px;
+}
+.table-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--primary, #6366f1);
+  border-radius: 4px;
+}
+.table-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
+}
+
+.table-scrollbar thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #f8fafc;
+  box-shadow: inset 0 -1px 0 var(--border-color);
+}
+</style>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- DEPARTMENT MANAGEMENT MODAL                 -->
+<!-- ═══════════════════════════════════════════ -->
+<div *ngIf="showDeptManageModal"
+     style="position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px;"
+     (click)="showDeptManageModal = false">
+  <div style="background: var(--bg-secondary, #1e2135); border-radius: 16px; width: 100%; max-width: 520px; padding: 28px; border: 1px solid var(--border-color); box-shadow: 0 24px 80px rgba(0,0,0,0.5);"
+       (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div>
+        <h3 style="font-size: 18px; font-weight: 700; margin: 0;">🏷️ Manage Departments / Categories</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">Add new departments or remove existing ones</p>
+      </div>
+      <button (click)="showDeptManageModal = false"
+              style="background: rgba(239,68,68,0.12); border: none; color: var(--danger); border-radius: 8px; width: 32px; height: 32px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
+    </div>
+
+    <!-- Existing Departments -->
+    <div style="margin-bottom: 20px;">
+      <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 10px; text-transform: uppercase;">Current Departments ({{ departments.length }})</div>
+      <div style="display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto;">
+        <div *ngFor="let dept of departments"
+             style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-tertiary, rgba(99,102,241,0.05)); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 14px;">
+          <div>
+            <div style="font-weight: 600; font-size: 14px; color: var(--text-primary);">{{ dept.name }}</div>
+            <div *ngIf="dept.description" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">{{ dept.description }}</div>
+          </div>
+          <!-- Delete confirm inline -->
+          <div *ngIf="deptDeleteConfirm?.id !== dept.id">
+            <button (click)="confirmDeleteDept(dept)"
+                    style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--danger); border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-weight: 600;">
+              🗑️ Delete
+            </button>
+          </div>
+          <div *ngIf="deptDeleteConfirm?.id === dept.id" style="display: flex; gap: 6px; align-items: center;">
+            <span style="font-size: 11px; color: var(--danger); font-weight: 600;">Confirm Delete?</span>
+            <button (click)="doDeleteDept()"
+                    style="background: var(--danger); border: none; color: white; border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-weight: 700;">Yes</button>
+            <button (click)="deptDeleteConfirm = null"
+                    style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer;">No</button>
+          </div>
+        </div>
+        <div *ngIf="departments.length === 0"
+             style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">
+          No departments found.
+        </div>
+      </div>
+    </div>
+
+    <!-- Add New Department -->
+    <div style="border-top: 1px solid var(--border-color); padding-top: 18px;">
+      <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 10px; text-transform: uppercase;">Add New Department</div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <input type="text" [(ngModel)]="newDept.name" placeholder="Department name (e.g. IT, Security, Media...)"
+               style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); font-size: 14px; width: 100%; box-sizing: border-box;" />
+        <input type="text" [(ngModel)]="newDept.description" placeholder="Description (Optional)"
+               style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); font-size: 14px; width: 100%; box-sizing: border-box;" />
+        <div *ngIf="deptError" style="color: var(--danger); font-size: 12px; font-weight: 600;">⚠️ {{ deptError }}</div>
+        <button (click)="saveDept()" [disabled]="deptSaving"
+                style="background: var(--primary); border: none; color: white; border-radius: 8px; padding: 10px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                [style.opacity]="deptSaving ? '0.6' : '1'">
+          <span *ngIf="!deptSaving">✅ Add Department</span>
+          <span *ngIf="deptSaving">⏳ Adding...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PRINTABLE INTEGRATED FINANCE LEDGER MODAL   -->
+<!-- ═══════════════════════════════════════════ -->
+<div *ngIf="showFinancePrintModal" class="modal-overlay" (click)="closeFinancePrintModal()">
+  <div class="glass-panel" style="width: 95vw; max-width: 1000px; max-height: 90vh; overflow-y: auto; padding: 24px; background: #ffffff; color: #0f172a;"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Top Action Bar (hidden when printing) -->
+    <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0;">🖨️ Integrated Finance Ledger Report</h3>
+        <p style="font-size: 12px; color: #64748b; margin-top: 2px;">Customize columns on screen & click "Print Now" to generate printout/PDF</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <button class="btn btn-primary" (click)="triggerPrint()" style="font-weight: 700; padding: 8px 18px; font-size: 13px;">
+          🖨️ Print Now
+        </button>
+        <button class="btn btn-outline" (click)="closeFinancePrintModal()" style="font-weight: 700; padding: 8px 14px; font-size: 13px; color: #ef4444; border-color: #fca5a5;">
+          ✕ Close
+        </button>
+      </div>
+    </div>
+
+    <!-- Printable Sheet Content -->
+    <div style="background: #ffffff; padding: 10px; color: #0f172a; font-family: sans-serif;">
+      
+      <!-- Report Header -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #4f46e5; padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="icon.webp" alt="ISCON Yatra" style="width: 48px; height: 48px; border-radius: 8px; object-fit: contain; border: 1px solid #e2e8f0; padding: 2px;" />
+          <div>
+            <h2 style="font-size: 20px; font-weight: 800; color: #1e1b4b; margin: 0; letter-spacing: -0.5px;">ISCON YATRA MANAGEMENT</h2>
+            <p style="font-size: 13px; font-weight: 700; color: #4f46e5; margin-top: 2px; text-transform: uppercase;">Integrated Finance Ledger Report</p>
+          </div>
+        </div>
+
+        <div style="text-align: right; font-size: 11px; color: #475569;">
+          <div style="font-weight: 700; font-size: 12px; color: #0f172a;">Active Tour: {{ getPackageName(selectedPackageId) }}</div>
+          <div>Filter: <strong>{{ financeFilter }}</strong> | Category: <strong>{{ financeCategoryFilter }}</strong></div>
+          <div>Date: <strong>{{ todayDateStr }}</strong></div>
+        </div>
+      </div>
+
+      <!-- Financial Summary Cards Row -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <div style="border-right: 1px solid #cbd5e1; padding-right: 8px;">
+          <div style="font-size: 10px; font-weight: 700; color: #059669; text-transform: uppercase;">Total Income</div>
+          <div style="font-size: 16px; font-weight: 800; color: #059669; margin-top: 2px;">+₹{{ totalCombinedIncome | number }}</div>
+        </div>
+        <div style="border-right: 1px solid #cbd5e1; padding-right: 8px;">
+          <div style="font-size: 10px; font-weight: 700; color: #e11d48; text-transform: uppercase;">Total Expense</div>
+          <div style="font-size: 16px; font-weight: 800; color: #e11d48; margin-top: 2px;">−₹{{ totalCombinedExpense | number }}</div>
+        </div>
+        <div style="border-right: 1px solid #cbd5e1; padding-right: 8px;">
+          <div style="font-size: 10px; font-weight: 700; color: #2563eb; text-transform: uppercase;">Transfers</div>
+          <div style="font-size: 16px; font-weight: 800; color: #2563eb; margin-top: 2px;">⇄ ₹{{ totalAdvanceTransfers | number }}</div>
+        </div>
+        <div>
+          <div style="font-size: 10px; font-weight: 700; color: #4f46e5; text-transform: uppercase;">Net Balance</div>
+          <div style="font-size: 16px; font-weight: 800; color: #4f46e5; margin-top: 2px;">₹{{ netFinanceBalance | number }}</div>
+        </div>
+      </div>
+
+      <!-- Ledger Printable Table -->
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border: 1px solid #cbd5e1;">
+        <thead>
+          <tr style="background: #f1f5f9; color: #1e293b; border-bottom: 2px solid #cbd5e1;">
+            <th style="padding: 8px 10px; font-weight: 700; width: 40px; text-align: center;">#</th>
+            <th *ngIf="printColumns.date" style="padding: 8px 10px; font-weight: 700;">Date</th>
+            <th *ngIf="printColumns.type" style="padding: 8px 10px; font-weight: 700; text-align: center;">Type</th>
+            <th *ngIf="printColumns.party" style="padding: 8px 10px; font-weight: 700;">Party / Recipient</th>
+            <th *ngIf="printColumns.category" style="padding: 8px 10px; font-weight: 700;">Dept / Category</th>
+            <th *ngIf="printColumns.description" style="padding: 8px 10px; font-weight: 700;">Remarks</th>
+            <th *ngIf="printColumns.mode" style="padding: 8px 10px; font-weight: 700;">Mode</th>
+            <th *ngIf="printColumns.income" style="padding: 8px 10px; font-weight: 700; text-align: right; color: #059669;">Income</th>
+            <th *ngIf="printColumns.expense" style="padding: 8px 10px; font-weight: 700; text-align: right; color: #e11d48;">Expense</th>
+            <th *ngIf="printColumns.transfer" style="padding: 8px 10px; font-weight: 700; text-align: right; color: #2563eb;">Transfer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of combinedFinanceLedger; let idx = index" style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 7px 10px; text-align: center; color: #64748b; font-size: 11px;">{{ idx + 1 }}</td>
+            <td *ngIf="printColumns.date" style="padding: 7px 10px; white-space: nowrap;">{{ item.date || '—' }}</td>
+            <td *ngIf="printColumns.type" style="padding: 7px 10px; text-align: center; font-weight: 700;">
+              <span [style.color]="item.kind === 'Income' ? '#059669' : (item.kind === 'Transfer' ? '#2563eb' : '#e11d48')">
+                {{ item.kind }}
+              </span>
+            </td>
+            <td *ngIf="printColumns.party" style="padding: 7px 10px; font-weight: 700; color: #0f172a;">{{ item.party }}</td>
+            <td *ngIf="printColumns.category" style="padding: 7px 10px;">{{ item.category || item.department || '—' }}</td>
+            <td *ngIf="printColumns.description" style="padding: 7px 10px; color: #475569; font-size: 11px;">{{ item.description || '—' }}</td>
+            <td *ngIf="printColumns.mode" style="padding: 7px 10px; font-size: 11px;">{{ item.mode || 'Cash' }}</td>
+            <td *ngIf="printColumns.income" style="padding: 7px 10px; text-align: right; font-weight: 800; color: #059669;">
+              {{ item.kind === 'Income' ? '+₹' + (item.amount | number) : '—' }}
+            </td>
+            <td *ngIf="printColumns.expense" style="padding: 7px 10px; text-align: right; font-weight: 800; color: #e11d48;">
+              {{ item.kind === 'Expense' ? '−₹' + (item.amount | number) : '—' }}
+            </td>
+            <td *ngIf="printColumns.transfer" style="padding: 7px 10px; text-align: right; font-weight: 800; color: #2563eb;">
+              {{ item.kind === 'Transfer' ? '⇄ ₹' + (item.amount | number) : '—' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Footer Sign & Timestamp -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; padding-top: 16px; border-top: 1px dashed #cbd5e1; font-size: 11px; color: #64748b;">
+        <div>
+          <div>Report Generated By: <strong>Shree Krishna Sewak (Admin)</strong></div>
+          <div>ISCON Yatra Integrated Finance System</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="border-bottom: 1px solid #94a3b8; width: 140px; margin-bottom: 4px;"></div>
+          <div>Authorized Signature</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- DELETE ANNOUNCEMENT CONFIRMATION MODAL -->
+<div *ngIf="showAnnounceDeleteConfirm" 
+     style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+  <div class="glass-panel text-left" 
+       style="width: 100%; max-width: 420px; padding: 28px; background: var(--bg-secondary); border-top: 3px solid var(--danger); animation: zoomIn 0.25s ease;">
+    <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">⚠️ Delete Announcement?</h3>
+    <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">
+      Are you sure you want to permanently delete <strong>"{{ announcementToDelete?.title }}"</strong>?
+    </p>
+    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+      <button class="btn btn-outline" (click)="showAnnounceDeleteConfirm = false; announcementToDelete = null">Cancel</button>
+      <button class="btn" style="background: var(--danger); color: #fff; border: none; font-weight: 700;" (click)="confirmDeleteAnnouncement()">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD / EDIT MEDICAL INCIDENT MODAL ══ -->
+<div *ngIf="showMedicalModal"
+     style="position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+  <div class="glass-panel" style="width: 100%; max-width: 520px; padding: 28px; background: var(--bg-secondary); border-top: 4px solid var(--accent-orange); border-radius: 14px; max-height: 90vh; overflow-y: auto;">
+    
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+      <div>
+        <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">
+          {{ isEditMedical ? '✏️ Edit Medical Incident' : '🏥 Record Medical Incident' }}
+        </h2>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">Pilgrim medical issue & treatment info</p>
+      </div>
+      <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showMedicalModal = false">✕</button>
+    </div>
+
+    <form (submit)="saveMedicalIncident()" style="display: flex; flex-direction: column; gap: 14px;">
+
+      <!-- Yatri Member Selector -->
+      <div style="position: relative;">
+        <label style="font-weight: 600; font-size: 13px;">Yatri / Pilgrim Name <span style="color: var(--danger);">*</span></label>
+        <div (click)="toggleMedicalYatriDropdown()"
+             style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 13px; margin-top: 4px;">
+          <span style="font-weight: 600; color: var(--text-primary);">
+            {{ newMedical.yatriName || '🔍 Select Pilgrim / Yatri...' }}
+          </span>
+          <span style="font-size: 10px; color: var(--text-muted);">▼</span>
+        </div>
+        
+        <div *ngIf="showMedicalYatriDropdown"
+             style="position: absolute; left: 0; right: 0; top: 100%; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 1200; margin-top: 4px; padding: 8px;">
+          <input type="text" [(ngModel)]="yatriSearchForMedical" name="medYatriSearch"
+                 (input)="filterYatrisForMedical()" placeholder="Search Yatri name or ID..."
+                 style="padding: 8px 12px; font-size: 13px; border-radius: 6px; width: 100%; margin-bottom: 6px;"
+                 (click)="$event.stopPropagation()" />
+          <div style="max-height: 160px; overflow-y: auto;">
+            <div *ngFor="let y of (yatriSearchForMedical ? filteredYatrisForMedical : allowedYatris)"
+                 (click)="selectYatriForMedical(y)"
+                 style="padding: 8px 10px; cursor: pointer; border-radius: 6px; font-size: 12px; display: flex; justify-content: space-between;"
+                 onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
+              <span style="font-weight: 600;">{{ y.name }}</span>
+              <span style="color: var(--text-muted);">{{ y.phone }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Or custom name if non-yatri -->
+      <div *ngIf="!selectedYatriForMedical">
+        <label style="font-weight: 600; font-size: 12px; color: var(--text-muted);">Or type name directly</label>
+        <input type="text" [(ngModel)]="newMedical.yatriName" name="medYatriDirect" placeholder="e.g. Rameshwar Patil" style="margin-top: 4px;" />
+      </div>
+
+      <!-- Medical Complaint / Symptoms -->
+      <div>
+        <label style="font-weight: 600; font-size: 13px;">Symptoms / Complaint <span style="color: var(--danger);">*</span></label>
+        <input type="text" [(ngModel)]="newMedical.symptoms" name="medSymptoms" required placeholder="e.g. High Blood Pressure, Fever, Leg Pain, Acidity..." style="margin-top: 4px;" />
+      </div>
+
+      <!-- Treatment Provided -->
+      <div>
+        <label style="font-weight: 600; font-size: 13px;">Treatment Provided</label>
+        <textarea [(ngModel)]="newMedical.treatment" name="medTreatment" rows="2" placeholder="e.g. Paracetamol 500mg, ORS Solution, 2 hrs bed rest..." style="margin-top: 4px; padding: 10px; border-radius: 8px; width: 100%; font-size: 13px;"></textarea>
+      </div>
+
+      <!-- Doctor Name & Date -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div>
+          <label style="font-weight: 600; font-size: 13px;">Doctor / Attendant Name</label>
+          <input type="text" [(ngModel)]="newMedical.doctorName" name="medDoctor" placeholder="e.g. Dr. Kulkarni / Volunteer" style="margin-top: 4px;" />
+        </div>
+        <div>
+          <label style="font-weight: 600; font-size: 13px;">Date</label>
+          <input type="date" [(ngModel)]="newMedical.date" name="medDate" style="margin-top: 4px;" />
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div>
+        <label style="font-weight: 600; font-size: 13px;">Current Status</label>
+        <select [(ngModel)]="newMedical.status" name="medStatus" style="margin-top: 4px; padding: 8px; border-radius: 8px; width: 100%;">
+          <option value="Under Care">🟡 Under Care / Treatment</option>
+          <option value="Recovered">🟢 Recovered / Treated</option>
+          <option value="Referred">🔴 Referred to Hospital</option>
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 6px;">
+        <button type="button" class="btn btn-outline" (click)="showMedicalModal = false">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 22px; font-weight: 700;">
+          💾 Save Medical Incident
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ ADD / EDIT LOST & FOUND ITEM MODAL ══ -->
+<div *ngIf="showLostModal"
+     style="position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+  <div class="glass-panel" style="width: 100%; max-width: 520px; padding: 28px; background: var(--bg-secondary); border-top: 4px solid var(--primary); border-radius: 14px; max-height: 90vh; overflow-y: auto;">
+    
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+      <div>
+        <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">
+          {{ isEditLost ? '✏️ Edit Lost / Found Item' : '🔍 Log Lost / Found Item' }}
+        </h2>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">Record of lost or found items</p>
+      </div>
+      <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showLostModal = false">✕</button>
+    </div>
+
+    <form (submit)="saveLostItem()" style="display: flex; flex-direction: column; gap: 14px;">
+
+      <!-- Category Selector -->
+      <div>
+        <label style="font-weight: 600; font-size: 13px;">Item Category <span style="color: var(--danger);">*</span></label>
+        <select [(ngModel)]="newLostItem.category" name="lostCat" style="margin-top: 4px; padding: 8px; border-radius: 8px; width: 100%;">
+          <option *ngFor="let cat of lostCategories" [value]="cat">{{ cat }}</option>
+        </select>
+      </div>
+
+      <!-- Item Name -->
+      <div>
+        <label style="font-weight: 600; font-size: 13px;">Item Name <span style="color: var(--danger);">*</span></label>
+        <input type="text" [(ngModel)]="newLostItem.itemName" name="lostName" required placeholder="e.g. Gold chain, Black bag, Cash ₹5,000..." style="margin-top: 4px;" />
+      </div>
+
+      <!-- Item Description -->
+      <div>
+        <label style="font-weight: 600; font-size: 13px;">Description & Identification</label>
+        <textarea [(ngModel)]="newLostItem.description" name="lostDesc" rows="2" placeholder="e.g. 10g gold chain with Krishna locket, bag with red strap..." style="margin-top: 4px; padding: 10px; border-radius: 8px; width: 100%; font-size: 13px;"></textarea>
+      </div>
+
+      <!-- Location Found/Lost & Date -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div>
+          <label style="font-weight: 600; font-size: 13px;">Location</label>
+          <input type="text" [(ngModel)]="newLostItem.location" name="lostLoc" placeholder="e.g. Bus no. 4, Room 204, Temple area" style="margin-top: 4px;" />
+        </div>
+        <div>
+          <label style="font-weight: 600; font-size: 13px;">Reported Date</label>
+          <input type="date" [(ngModel)]="newLostItem.reportedDate" name="lostDate" style="margin-top: 4px;" />
+        </div>
+      </div>
+
+      <!-- Owner / Yatri Name lookup -->
+      <div style="position: relative;">
+        <label style="font-weight: 600; font-size: 13px;">Owner / Reporter Name</label>
+        <div (click)="toggleLostYatriDropdown()"
+             style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 13px; margin-top: 4px;">
+          <span style="font-weight: 600; color: var(--text-primary);">
+            {{ newLostItem.yatriName || '🔍 Link to Yatri (Optional)...' }}
+          </span>
+          <span style="font-size: 10px; color: var(--text-muted);">▼</span>
+        </div>
+        
+        <div *ngIf="showLostYatriDropdown"
+             style="position: absolute; left: 0; right: 0; top: 100%; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 1200; margin-top: 4px; padding: 8px;">
+          <input type="text" [(ngModel)]="yatriSearchForLost" name="lostYatriSearch"
+                 (input)="filterYatrisForLost()" placeholder="Search Yatri..."
+                 style="padding: 8px 12px; font-size: 13px; border-radius: 6px; width: 100%; margin-bottom: 6px;"
+                 (click)="$event.stopPropagation()" />
+          <div style="max-height: 160px; overflow-y: auto;">
+            <div *ngFor="let y of (yatriSearchForLost ? filteredYatrisForLost : allowedYatris)"
+                 (click)="selectYatriForLost(y)"
+                 style="padding: 8px 10px; cursor: pointer; border-radius: 6px; font-size: 12px; display: flex; justify-content: space-between;"
+                 onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
+              <span style="font-weight: 600;">{{ y.name }}</span>
+              <span style="color: var(--text-muted);">{{ y.phone }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Or Direct Owner Name -->
+      <div *ngIf="!selectedYatriForLost">
+        <input type="text" [(ngModel)]="newLostItem.yatriName" name="lostYatriDirect" placeholder="Or type owner's name directly..." style="margin-top: -6px;" />
+      </div>
+
+      <!-- Initial Status -->
+      <div>
+        <label style="font-weight: 600; font-size: 13px;">Status</label>
+        <select [(ngModel)]="newLostItem.status" name="lostStatus" style="margin-top: 4px; padding: 8px; border-radius: 8px; width: 100%;">
+          <option value="Lost">🔴 Lost (Item is missing)</option>
+          <option value="Found">🟢 Found (Item recovered)</option>
+          <option value="Returned">🔵 Returned (Handed to owner)</option>
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 6px;">
+        <button type="button" class="btn btn-outline" (click)="showLostModal = false">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 22px; font-weight: 700;">
+          💾 Save Item Record
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ HAND OVER / RETURN ITEM MODAL ══ -->
+<div *ngIf="showReturnModal"
+     style="position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+  <div class="glass-panel" style="width: 100%; max-width: 440px; padding: 28px; background: var(--bg-secondary); border-top: 4px solid var(--secondary); border-radius: 14px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+      <div>
+        <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">🤝 Hand Over Item to Owner</h2>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">{{ returningLostItem?.itemName }}</p>
+      </div>
+      <button class="btn btn-outline" style="padding: 6px 10px;" (click)="showReturnModal = false">✕</button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div>
+        <label style="font-weight: 600; font-size: 13px;">Receiver Name <span style="color: var(--danger);">*</span></label>
+        <input type="text" [(ngModel)]="returnReceiverName" name="retName" required placeholder="e.g. Ramesh Joshi" style="margin-top: 4px;" />
+      </div>
+
+      <div>
+        <label style="font-weight: 600; font-size: 13px;">Receiver Phone Number</label>
+        <input type="text" [(ngModel)]="returnReceiverPhone" name="retPhone" placeholder="e.g. 9876543210" style="margin-top: 4px;" />
+      </div>
+
+      <div style="background: rgba(16,185,129,0.08); border-radius: 8px; padding: 12px; font-size: 12px; color: var(--secondary); font-weight: 600;">
+        ✓ This item will be marked as <strong>Returned / Handed Over</strong> to the owner.
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+        <button type="button" class="btn btn-outline" (click)="showReturnModal = false">Cancel</button>
+        <button type="button" class="btn btn-primary" style="padding: 10px 22px; font-weight: 700; background: var(--secondary); border-color: var(--secondary);" (click)="saveReturnItem()">
+          ✅ Mark Handed Over
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RECEIPT PHOTO LIGHTBOX MODAL ══ -->
+<div class="modal-overlay" *ngIf="selectedReceiptImage" (click)="closeReceiptLightbox()"
+     style="position: fixed; inset: 0; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+  <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center;" (click)="$event.stopPropagation()">
+    <button (click)="closeReceiptLightbox()"
+            style="position: absolute; top: -16px; right: -16px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; font-weight: 900; font-size: 16px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10;">
+      ✕
+    </button>
+    <img [src]="selectedReceiptImage" style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2);" />
+    <div style="color: white; font-weight: 700; margin-top: 12px; font-size: 14px;">📷 Vendor Receipt / Bill Photo</div>
+  </div>
+</div>

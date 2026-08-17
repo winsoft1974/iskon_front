@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<div class="login-page">
+  <!-- Background decorative elements -->
+  <div class="bg-circle bg-circle-1"></div>
+  <div class="bg-circle bg-circle-2"></div>
+  <div class="bg-circle bg-circle-3"></div>
+
+  <div class="login-card animated-fade-in">
+
+    <!-- Logo & Title -->
+    <div class="login-header">
+      <div class="logo-wrap">
+        <img src="icon.webp" alt="ISCON Yatra Logo" class="login-logo" />
+      </div>
+      <h1 class="login-title">ISCON Yatra</h1>
+      <p class="login-subtitle">Management Portal · Sign In</p>
+    </div>
+
+    <!-- Role Badges -->
+    <div class="role-badges">
+      <span class="role-badge role-kas">👑 Kas Authority</span>
+      <span class="role-badge role-incharge">🧑‍💼 Service Incharge</span>
+      <span class="role-badge role-volunteer">🙋 Volunteer</span>
+    </div>
+
+    <!-- Login Form -->
+    <form (ngSubmit)="onSubmit()" class="login-form">
+
+      <!-- Tour Package Selector -->
+      <div class="form-group">
+        <label class="form-label">🎯 Tour Package (Select Yatra)</label>
+        <select
+          id="login-package"
+          [(ngModel)]="selectedPackageId"
+          name="selectedPackageId"
+          class="form-input"
+          style="cursor: pointer; font-weight: 600; color: #ffffff; background: rgba(255,255,255,0.12);"
+          [disabled]="loading() || packagesLoading"
+        >
+          <option value="" disabled style="color: #000;">-- Select Tour Package --</option>
+          <option *ngFor="let pkg of packages" [value]="pkg.id" style="color: #000;">
+            🚩 {{ pkg.name }} ({{ pkg.status || 'Active' }})
+          </option>
+        </select>
+      </div>
+
+      <!-- Username -->
+      <div class="form-group">
+        <label class="form-label">👤 Username</label>
+        <input
+          id="login-username"
+          type="text"
+          [(ngModel)]="username"
+          name="username"
+          placeholder="Enter your username"
+          class="form-input"
+          autocomplete="username"
+          [disabled]="loading()"
+        />
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label class="form-label">🔒 Password</label>
+        <div class="password-wrap">
+          <input
+            id="login-password"
+            [type]="showPassword ? 'text' : 'password'"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="Enter your password"
+            class="form-input"
+            autocomplete="current-password"
+            [disabled]="loading()"
+          />
+          <button type="button" class="toggle-pw" (click)="showPassword = !showPassword" tabindex="-1">
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="error()" class="error-banner">
+        ⚠️ {{ error() }}
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        id="login-submit"
+        type="submit"
+        class="login-btn"
+        [disabled]="loading()"
+      >
+        <span *ngIf="!loading()">🚀 Sign In</span>
+        <span *ngIf="loading()" class="btn-loading">
+          <span class="spinner"></span> Signing in...
+        </span>
+      </button>
+    </form>
+
+    <!-- Footer -->
+    <p class="login-footer">
+      🙏 Hare Krishna · ISCON Yatra Management System
+    </p>
+  </div>
+</div>
+
+<style>
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-family, 'Inter', sans-serif);
+}
+
+.bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.08;
+  animation: floatBg 8s ease-in-out infinite;
+}
+.bg-circle-1 { width: 600px; height: 600px; background: #6366f1; top: -200px; right: -150px; animation-delay: 0s; }
+.bg-circle-2 { width: 400px; height: 400px; background: #8b5cf6; bottom: -100px; left: -100px; animation-delay: -3s; }
+.bg-circle-3 { width: 300px; height: 300px; background: #ec4899; top: 40%; left: 60%; animation-delay: -6s; }
+
+@keyframes floatBg {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-20px) scale(1.05); }
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  padding: 40px 36px;
+  box-shadow: 0 32px 64px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+  position: relative;
+  z-index: 1;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.login-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  object-fit: contain;
+  background: rgba(255,255,255,0.9);
+  padding: 6px;
+  box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+}
+
+.login-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  margin: 0 0 4px;
+}
+
+.login-subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  font-weight: 500;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.role-badges {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.role-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-kas      { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+.role-incharge { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); }
+.role-volunteer{ background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-input {
+  padding: 13px 16px;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.form-input::placeholder { color: rgba(255,255,255,0.3); }
+.form-input:focus {
+  border-color: rgba(99,102,241,0.8);
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+}
+.form-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.password-wrap {
+  position: relative;
+}
+.password-wrap .form-input { padding-right: 48px; width: 100%; box-sizing: border-box; }
+.toggle-pw {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.toggle-pw:hover { opacity: 1; }
+
+.error-banner {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.35);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #fca5a5;
+  font-weight: 500;
+}
+
+.login-btn {
+  padding: 15px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+.login-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99,102,241,0.5);
+}
+
+.login-btn:active:not(:disabled) { transform: translateY(0); }
+
+.login-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.login-footer {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 28px;
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animated-fade-in { animation: fadeIn 0.5s ease; }
+</style>

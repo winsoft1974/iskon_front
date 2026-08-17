@@ -1,0 +1,266 @@
+<div class="glass-panel animated-fade-in" style="padding: 24px;">
+  
+  <!-- Sub-Tab Toggle Navigation -->
+  <div style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 2px solid var(--border-color); padding-bottom: 14px; flex-wrap: wrap;">
+    <button (click)="ops.memberAccessTab = 'roleMatrix'"
+            [style.background]="ops.memberAccessTab === 'roleMatrix' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'var(--bg-tertiary)'"
+            [style.color]="ops.memberAccessTab === 'roleMatrix' ? '#ffffff' : 'var(--text-secondary)'"
+            style="padding: 10px 22px; border-radius: 10px; border: none; font-weight: 800; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+      ⚙️ Member Checkbox Permission Matrix (सदस्य निवड व चेकबॉक्स परमिशन)
+    </button>
+    <button (click)="ops.memberAccessTab = 'memberMatrix'"
+            [style.background]="ops.memberAccessTab === 'memberMatrix' ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : 'var(--bg-tertiary)'"
+            [style.color]="ops.memberAccessTab === 'memberMatrix' ? '#ffffff' : 'var(--text-secondary)'"
+            style="padding: 10px 22px; border-radius: 10px; border: none; font-weight: 800; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+      📋 All Members Quick List (सर्व सदस्यांची यादी)
+    </button>
+  </div>
+
+  <!-- ── SECTION A: MEMBER-WISE ACCESS MATRIX ── -->
+  <div *ngIf="ops.memberAccessTab === 'memberMatrix'">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h3 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+          👤 Individual Member & Department Access Control
+        </h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">
+          प्रत्येक सदस्याला (Person A → Food, Person B → Medical) त्यांचा विशिष्ट विभाग आणि रोल सेट करा.
+        </p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <input type="text" [(ngModel)]="ops.memberAccessSearch" placeholder="🔍 Search member name, username, department..."
+               style="padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-size: 13px; width: 280px;" />
+        <button class="btn btn-outline" (click)="ops.loadSystemUsers()" style="padding: 9px 14px; font-weight: 700; font-size: 13px;">
+          🔄 Refresh List
+        </button>
+      </div>
+    </div>
+
+    <!-- Members Table -->
+    <div class="table-container" style="overflow-x: auto;">
+      <table class="custom-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: var(--bg-primary);">
+            <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 13px; border-bottom: 2px solid var(--border-color);">Member Name & Username</th>
+            <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 13px; border-bottom: 2px solid var(--border-color);">Role / Position</th>
+            <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 13px; border-bottom: 2px solid var(--border-color);">Assigned Department Access</th>
+            <th style="padding: 12px 16px; text-align: center; font-weight: 800; font-size: 13px; border-bottom: 2px solid var(--border-color);">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of ops.filteredSystemUsers" style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 12px 16px;">
+              <div style="font-weight: 800; font-size: 14px; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span>{{ user.fullName }}</span>
+                <span *ngIf="user.hasUserAccount" style="font-size: 10px; background: rgba(16,185,129,0.15); color: #10b981; padding: 2px 7px; border-radius: 6px; font-weight: 800; border: 1px solid rgba(16,185,129,0.3);">
+                  ✓ Active Account
+                </span>
+                <span *ngIf="!user.hasUserAccount" style="font-size: 10px; background: rgba(245,158,11,0.15); color: #f59e0b; padding: 2px 7px; border-radius: 6px; font-weight: 800; border: 1px solid rgba(245,158,11,0.3);">
+                  🙋 Volunteer Record
+                </span>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+                <span *ngIf="user.hasUserAccount">&#64;{{ user.username }}</span>
+                <span *ngIf="user.phone"> • 📞 {{ user.phone }}</span>
+              </div>
+            </td>
+            <td style="padding: 12px 16px;">
+              <select [(ngModel)]="user.role" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-size: 13px; font-weight: 700;">
+                <option value="Volunteer">🙋 Volunteer</option>
+                <option value="ServiceIncharge">🧑‍💼 Service Incharge</option>
+                <option value="KasAuthority">👑 KasAuthority (Admin)</option>
+              </select>
+            </td>
+            <td style="padding: 12px 16px;">
+              <select [(ngModel)]="user.department" style="padding: 8px 12px; border-radius: 8px; border: 1.5px solid #6366f1; background: var(--bg-secondary); color: var(--text-primary); font-size: 13px; font-weight: 700;">
+                <option value="General">🏢 General (All Departments Access)</option>
+                <option value="Food">🍲 Food (Prasadam Department)</option>
+                <option value="Transport">🚌 Transport Department</option>
+                <option value="Accommodation">🏨 Accommodation Department</option>
+                <option value="Medical">🩺 Medical Department</option>
+                <option value="Religious">🛕 Religious / Puja Department</option>
+              </select>
+            </td>
+            <td style="padding: 12px 16px; text-align: center;">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                <button class="btn btn-primary" (click)="ops.updateMemberAccess(user)" [disabled]="user.isSaving"
+                        style="padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: 8px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; cursor: pointer;">
+                  <span *ngIf="!user.isSaving">💾 Save Access</span>
+                  <span *ngIf="user.isSaving">Saving...</span>
+                </button>
+                <button *ngIf="!user.hasUserAccount" class="btn btn-outline" (click)="ops.createLoginAccountForVol(user)"
+                        style="padding: 8px 12px; font-size: 11px; font-weight: 800; border-radius: 8px; border-color: #10b981; color: #10b981; cursor: pointer;"
+                        title="Create a user login account for this volunteer">
+                  🔑 Create Login
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="ops.filteredSystemUsers.length === 0">
+            <td colspan="4" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 14px;">
+              No members found.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── SECTION B: MEMBER & ROLE CHECKBOX PERMISSION MATRIX ── -->
+  <div *ngIf="ops.memberAccessTab === 'roleMatrix'">
+    <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+      <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-top: 0; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+        👤 Select Member to Set Custom Screen Permissions (सदस्य निवडा व हक्क ठरवा)
+      </h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+        स्वयंसेवक किंवा सर्व्हिस इंचार्ज निवडा आणि त्यांना कोणत्या विभागाचा (Food, Transport, Medical, etc.) ॲक्सेस द्यायचा ते खालील चेकबॉक्समधून ठरवा.
+      </p>
+
+      <!-- Member Selector Dropdown -->
+      <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 280px;">
+          <label style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
+            Select Member (सदस्य निवडा)
+          </label>
+          <select [(ngModel)]="ops.selectedMemberUsername" (change)="ops.onMemberSelect()"
+                  style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 2px solid var(--primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 15px; font-weight: 700; cursor: pointer;">
+            <option value="">-- Choose Member (Ram, Shyam, Incharges) --</option>
+            <option *ngFor="let u of ops.systemUsers" [value]="u.username">
+              👤 {{ u.fullName }} ({{ u.role }} - {{ u.department }} Dept) {{ u.username ? '• @' + u.username : '' }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Selected Member Summary Card -->
+      <div *ngIf="ops.selectedMember" style="margin-top: 16px; background: var(--bg-secondary); border: 1px solid rgba(99,102,241,0.3); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <div style="font-size: 17px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+            <span>👤 {{ ops.selectedMember.fullName }}</span>
+            <span style="font-size: 11px; background: rgba(99,102,241,0.15); color: #6366f1; padding: 3px 10px; border-radius: 6px; font-weight: 800;">
+              {{ ops.selectedMember.role }}
+            </span>
+            <span style="font-size: 11px; background: rgba(16,185,129,0.15); color: #10b981; padding: 3px 10px; border-radius: 6px; font-weight: 800;">
+              🏢 {{ ops.selectedMember.department }} Dept
+            </span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+            <span *ngIf="ops.selectedMember.hasUserAccount">Username: &#64;{{ ops.selectedMember.username }}</span>
+            <span *ngIf="!ops.selectedMember.hasUserAccount" style="color: #f59e0b; font-weight: 700;">⚠️ New Volunteer (Saving permissions will auto-generate login account)</span>
+            <span *ngIf="ops.selectedMember.phone"> • 📞 {{ ops.selectedMember.phone }}</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" (click)="ops.saveMemberPermissions()" [disabled]="ops.memberPermSaving"
+                style="padding: 10px 22px; font-weight: 800; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; cursor: pointer; border-radius: 8px;">
+          <span *ngIf="!ops.memberPermSaving">💾 Save {{ ops.selectedMember.fullName }}'s Permissions</span>
+          <span *ngIf="ops.memberPermSaving">Saving...</span>
+        </button>
+      </div>
+
+      <!-- Member Success Alert -->
+      <div *ngIf="ops.memberPermSuccessMsg" style="margin-top: 14px; background: rgba(16,185,129,0.15); color: #10b981; padding: 12px 16px; border-radius: 10px; font-weight: 700; font-size: 14px; border: 1px solid rgba(16,185,129,0.3);">
+        {{ ops.memberPermSuccessMsg }}
+      </div>
+
+      <!-- Checkbox Matrix for Selected Member -->
+      <div *ngIf="ops.selectedMember" class="table-container" style="overflow-x: auto; margin-top: 20px;">
+        <table class="custom-table" style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: var(--bg-secondary);">
+              <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 800; color: var(--text-primary); border-bottom: 2px solid var(--border-color);">Selected Member</th>
+              <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🍲 Food (Prasadam)</th>
+              <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🚌 Transport</th>
+              <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🏨 Accommodation</th>
+              <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🩺 Medical</th>
+              <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🛕 Religious</th>
+              <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🏢 General</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid var(--border-color);">
+              <td style="padding: 14px 16px; font-weight: 800; font-size: 14px; color: var(--text-primary);">
+                <div style="color: var(--primary); font-weight: 800; font-size: 15px;">👤 {{ ops.selectedMember.fullName }}</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">({{ ops.selectedMember.role }} - {{ ops.selectedMember.department }})</div>
+              </td>
+              <td *ngFor="let dept of ops.permDepartments" style="padding: 14px 10px; text-align: center;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; background: var(--bg-secondary); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                  
+                  <label style="cursor: pointer; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; user-select: none;">
+                    <input type="checkbox" [checked]="ops.getMemberPermCell(dept).canView"
+                           (change)="ops.toggleMemberPermCell(dept, 'canView')" style="width: 16px; height: 16px; cursor: pointer; accent-color: #10b981;" />
+                    <span [style.color]="ops.getMemberPermCell(dept).canView ? '#10b981' : 'var(--text-muted)'">Can View</span>
+                  </label>
+
+                  <label style="cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px; user-select: none; color: var(--text-secondary);">
+                    <input type="checkbox" [checked]="ops.getMemberPermCell(dept).canAddExpense"
+                           (change)="ops.toggleMemberPermCell(dept, 'canAddExpense')" style="width: 14px; height: 14px; cursor: pointer; accent-color: #6366f1;" />
+                    <span>+ Expense</span>
+                  </label>
+
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Global Role Permissions Matrix Section -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; margin-top: 32px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+      <div>
+        <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0;">
+          ⚙️ Default Role Permission Matrix (भूमिका निहाय डीफॉल्ट हक्क)
+        </h3>
+      </div>
+      <button class="btn btn-primary" (click)="ops.savePermissionMatrix()" [disabled]="ops.permissionSaving"
+              style="padding: 8px 18px; font-weight: 800; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; cursor: pointer;">
+        <span *ngIf="!ops.permissionSaving">💾 Save Role Defaults</span>
+        <span *ngIf="ops.permissionSaving">Saving...</span>
+      </button>
+    </div>
+
+    <!-- Interactive Checkbox Grid Table -->
+    <div class="table-container" style="overflow-x: auto;">
+      <table class="custom-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: var(--bg-primary);">
+            <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 800; color: var(--text-primary); border-bottom: 2px solid var(--border-color);">Role / Authority</th>
+            <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🍲 Food (Prasadam)</th>
+            <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🚌 Transport</th>
+            <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🏨 Accommodation</th>
+            <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🩺 Medical</th>
+            <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🛕 Religious</th>
+            <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 800; border-bottom: 2px solid var(--border-color);">🏢 General</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let role of ops.permRoles" style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 14px 16px; font-weight: 800; font-size: 14px; color: var(--text-primary);">
+              <div *ngIf="role === 'ServiceIncharge'" style="color: #6366f1; font-weight: 800; font-size: 15px;">🧑‍💼 Service Incharge</div>
+              <div *ngIf="role === 'Volunteer'" style="color: #8b5cf6; font-weight: 800; font-size: 15px;">🙋 Volunteer</div>
+            </td>
+            <td *ngFor="let dept of ops.permDepartments" style="padding: 14px 10px; text-align: center;">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; background: var(--bg-primary); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                
+                <label style="cursor: pointer; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; user-select: none;">
+                  <input type="checkbox" [checked]="ops.getPermCell(role, dept).canView"
+                         (change)="ops.togglePerm(role, dept, 'canView')" style="width: 16px; height: 16px; cursor: pointer; accent-color: #10b981;" />
+                  <span [style.color]="ops.getPermCell(role, dept).canView ? '#10b981' : 'var(--text-muted)'">Can View</span>
+                </label>
+
+                <label style="cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px; user-select: none; color: var(--text-secondary);">
+                  <input type="checkbox" [checked]="ops.getPermCell(role, dept).canAddExpense"
+                         (change)="ops.togglePerm(role, dept, 'canAddExpense')" style="width: 14px; height: 14px; cursor: pointer; accent-color: #6366f1;" />
+                  <span>+ Expense</span>
+                </label>
+
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

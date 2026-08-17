@@ -1,0 +1,271 @@
+<div style="min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #31104b 100%); color: #f8fafc; font-family: 'Inter', system-ui, sans-serif; padding: 20px 12px 60px 12px;">
+
+  <!-- Header Banner -->
+  <div style="max-width: 650px; margin: 0 auto 24px auto; text-align: center;">
+    <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #ec4899); margin-bottom: 12px; box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4); font-size: 28px;">
+      🛕
+    </div>
+    <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 6px 0; letter-spacing: -0.5px;">
+      ISCON Yatra Pilgrim Registration
+    </h1>
+    <p style="font-size: 13px; color: #cbd5e1; margin: 0; font-weight: 500;">
+      इस्कॉन यात्रा ऑनलाइन भाविक नोंदणी फॉर्म
+    </p>
+  </div>
+
+  <!-- Main Form Card Container -->
+  <div style="max-width: 650px; margin: 0 auto; background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 20px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); padding: 24px;">
+
+    <!-- Alert Box -->
+    <div *ngIf="showAlert" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 12px 16px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; font-weight: 600;">
+      {{ alertMessage }}
+    </div>
+
+    <!-- ══ SUCCESS SCREEN ══ -->
+    <div *ngIf="submittedSuccess" style="text-align: center; padding: 20px 10px;">
+      <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); border: 2px solid #10b981; color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 16px auto;">
+        ✓
+      </div>
+
+      <h2 style="font-size: 22px; font-weight: 800; color: #10b981; margin: 0 0 8px 0;">
+        जय श्रीकृष्ण! नोंदणी यशस्वी झाली आहे!
+      </h2>
+      <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 20px;">
+        तुमचे नोंदणी तपशील यशस्वीरीत्या जमा झाले आहेत.
+      </p>
+
+      <div style="background: rgba(15, 23, 42, 0.6); padding: 18px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: left; margin-bottom: 24px; font-size: 13px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
+          <span style="color: #94a3b8;">Registration Reference:</span>
+          <span style="font-weight: 800; color: #6366f1;">REG-2026-{{ successYatriDetails?.id || 'OK' }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span style="color: #94a3b8;">Pilgrim Name:</span>
+          <span style="font-weight: 700; color: #f8fafc;">{{ form.name }} {{ form.initiatedName ? '(' + form.initiatedName + ')' : '' }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span style="color: #94a3b8;">Mobile Number:</span>
+          <span style="font-weight: 700; color: #f8fafc;">📞 {{ form.phone }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span style="color: #94a3b8;">Package:</span>
+          <span style="font-weight: 700; color: #f59e0b;">🚩 {{ selectedPackageDetails?.name || 'Devotional Package' }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: #94a3b8;">Total Package Cost:</span>
+          <span style="font-weight: 800; color: #34d399;">₹{{ form.totalAmount | number }}</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button type="button" (click)="openWhatsAppSupport()" style="width: 100%; padding: 12px; background: #25d366; color: #ffffff; border: none; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.4);">
+          💬 Whatsapp वर नोंदणी पोच मिळवा
+        </button>
+
+        <button type="button" (click)="resetForm()" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.08); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer;">
+          ➕ दुसऱ्या भाविकाची नोंदणी करा
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ REGISTRATION FORM ══ -->
+    <form *ngIf="!submittedSuccess" (submit)="submitRegistration()" style="display: flex; flex-direction: column; gap: 20px;">
+
+      <!-- Step 0: Package Selection Card -->
+      <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%); padding: 16px; border-radius: 14px; border: 1px solid rgba(99, 102, 241, 0.4);">
+        <label style="color: #a5b4fc; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">
+          🚩 Select Devotional Package (यात्रा पॅकेज)
+        </label>
+
+        <select [(ngModel)]="form.packageId" name="packageId" (change)="onPackageChange()" style="width: 100%; padding: 11px 14px; font-size: 14px; font-weight: 700; border-radius: 10px; border: 1.5px solid rgba(99, 102, 241, 0.5); background: #0f172a; color: #ffffff; outline: none; cursor: pointer;">
+          <option [value]="null">Select Tour Package</option>
+          <option *ngFor="let pkg of packages" [value]="pkg.id">
+            🚩 {{ pkg.name }} — ₹{{ (pkg.costPerPerson || pkg.cost || 0) | number }} / Person
+          </option>
+        </select>
+
+        <div *ngIf="selectedPackageDetails" style="margin-top: 10px; font-size: 12px; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center;">
+          <span>📅 {{ selectedPackageDetails.startDate }} → {{ selectedPackageDetails.endDate }}</span>
+          <span style="font-weight: 800; color: #34d399; font-size: 15px;">₹{{ selectedPackageDetails.costPerPerson | number }}</span>
+        </div>
+      </div>
+
+      <!-- Step 1: ISCON Member Master Search (Auto-Fill) -->
+      <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <label style="font-size: 12px; font-weight: 700; color: #f59e0b; margin: 0; display: flex; align-items: center; gap: 6px;">
+            <span>📇</span> ISCON Permanent Member? (सदस्य असल्यास सर्च करा)
+          </label>
+        </div>
+
+        <div style="position: relative;">
+          <input type="text"
+                 [(ngModel)]="isconMemberSearchQuery"
+                 name="isconMemberSearchQuery"
+                 (focus)="showIsconMemberDropdown = true"
+                 (input)="showIsconMemberDropdown = true"
+                 placeholder="🔍 Search Member by DID, Name, Mobile or City..."
+                 style="width: 100%; padding: 10px 12px; font-size: 13px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #ffffff; outline: none;" />
+
+          <span *ngIf="isconMemberSearchQuery" (click)="clearIsconMember()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-weight: 700;">✕</span>
+
+          <div *ngIf="showIsconMemberDropdown" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 100; max-height: 220px; overflow-y: auto; background: #0f172a; border: 1px solid #6366f1; border-radius: 10px; margin-top: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            <div (click)="selectIsconMember(null)" style="padding: 10px; font-size: 12px; font-weight: 700; color: #f59e0b; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1);">
+              -- Non-Member / Continue Manually --
+            </div>
+            <div *ngFor="let m of filteredIsconMembers" (click)="selectIsconMember(m)" style="padding: 10px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <div style="font-weight: 700; font-size: 13px; color: #ffffff;">
+                <span *ngIf="m.did" style="background: rgba(99,102,241,0.2); color: #818cf8; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 6px;">DID: {{ m.did }}</span>
+                {{ m.name }} <span *ngIf="m.initiatedName" style="color: #c084fc; font-size: 12px;">({{ m.initiatedName }})</span>
+              </div>
+              <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">📞 {{ m.mobiles }} | 📍 {{ m.city }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Pilgrim Basic Information -->
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <h4 style="font-size: 13px; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; display: flex; align-items: center; gap: 6px;">
+          <span>👤</span> Pilgrim Details (भाविक माहिती)
+        </h4>
+
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">Full Name (संपूर्ण नाव) <span style="color: #ef4444;">*</span></label>
+          <input type="text" [(ngModel)]="form.name" name="name" required placeholder="Enter Your Full Name" style="width: 100%; padding: 11px 14px; font-size: 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #ffffff; outline: none;" />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">Initiated Name (दीक्षित नाव)</label>
+            <input type="text" [(ngModel)]="form.initiatedName" name="initiatedName" placeholder="e.g. Radheshyam Das" style="width: 100%; padding: 11px 14px; font-size: 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #ffffff; outline: none;" />
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">Mobile Number <span style="color: #ef4444;">*</span></label>
+            <input type="text" [(ngModel)]="form.phone" name="phone" required placeholder="10-digit Mobile Number" style="width: 100%; padding: 11px 14px; font-size: 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #ffffff; outline: none;" />
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">Age (वय)</label>
+            <input type="number" [(ngModel)]="form.age" name="age" min="1" max="120" style="width: 100%; padding: 11px 14px; font-size: 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #ffffff; outline: none;" />
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">Gender (लिंग)</label>
+            <select [(ngModel)]="form.gender" name="gender" style="width: 100%; padding: 11px 14px; font-size: 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #ffffff; outline: none;">
+              <option value="Male">Male (पुरुष)</option>
+              <option value="Female">Female (स्त्री)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">Aadhaar Number (आधार कार्ड नंबर)</label>
+          <input type="text" [(ngModel)]="form.idNumber" name="idNumber" placeholder="Enter 12-digit Aadhaar Card Number" style="width: 100%; padding: 11px 14px; font-size: 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #ffffff; outline: none;" />
+        </div>
+
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">Address (पत्ता & शहर)</label>
+          <input type="text" [(ngModel)]="form.address" name="address" placeholder="Enter Residential Address & City" style="width: 100%; padding: 11px 14px; font-size: 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #ffffff; outline: none;" />
+        </div>
+      </div>
+
+      <!-- Step 3: Referred By ISCON Member -->
+      <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
+        <label style="font-size: 12px; font-weight: 700; color: #818cf8; margin: 0 0 8px 0; display: block;">
+          🤝 Referred By (कोणाच्या रेफरन्सने आला आहात?)
+        </label>
+
+        <div style="position: relative;">
+          <input type="text"
+                 [(ngModel)]="referredBySearchQuery"
+                 name="referredBySearchQuery"
+                 (focus)="showReferredByDropdown = true"
+                 (input)="showReferredByDropdown = true"
+                 placeholder="🔍 Search Referring Member Name or DID..."
+                 style="width: 100%; padding: 10px 12px; font-size: 13px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #ffffff; outline: none;" />
+
+          <span *ngIf="referredBySearchQuery" (click)="clearReferredBy()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-weight: 700;">✕</span>
+
+          <div *ngIf="showReferredByDropdown" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 100; max-height: 200px; overflow-y: auto; background: #0f172a; border: 1px solid #6366f1; border-radius: 10px; margin-top: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            <div (click)="selectReferredBy(null)" style="padding: 10px; font-size: 12px; font-weight: 700; color: #94a3b8; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1);">
+              -- Direct / No Reference --
+            </div>
+            <div *ngFor="let m of filteredReferredByMembers" (click)="selectReferredBy(m)" style="padding: 10px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <div style="font-weight: 700; font-size: 13px; color: #ffffff;">
+                <span *ngIf="m.did" style="background: rgba(99,102,241,0.2); color: #818cf8; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 6px;">DID: {{ m.did }}</span>
+                {{ m.name }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Co-Pilgrims / Family Members -->
+      <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h4 style="font-size: 13px; font-weight: 700; color: #818cf8; text-transform: uppercase; margin: 0;">
+            👥 Co-Pilgrims (कुटुंबातील इतर सदस्य)
+          </h4>
+          <button type="button" (click)="addSubMember()" style="padding: 6px 12px; background: rgba(99,102,241,0.2); border: 1px solid #6366f1; color: #818cf8; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
+            ➕ Member Add करा
+          </button>
+        </div>
+
+        <div *ngIf="subMembers.length === 0" style="font-size: 12px; color: #94a3b8; font-style: italic; text-align: center; padding: 10px 0;">
+          तुमच्यासोबत इतर कुटुंबीय असल्यास "Member Add करा" वर क्लिक करा.
+        </div>
+
+        <div *ngFor="let m of subMembers; let idx = index" style="background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; font-weight: 700; color: #f59e0b;">Member #{{ idx + 1 }}</span>
+            <button type="button" (click)="removeSubMember(idx)" style="background: none; border: none; color: #ef4444; font-weight: 700; cursor: pointer; font-size: 12px;">✕ Remove</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <input type="text" [(ngModel)]="m.name" [name]="'subName_' + idx" placeholder="Full Name *" required style="padding: 8px; font-size: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: #1e293b; color: #ffffff;" />
+            <input type="number" [(ngModel)]="m.age" [name]="'subAge_' + idx" placeholder="Age *" required style="padding: 8px; font-size: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: #1e293b; color: #ffffff;" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Advance Payment & Confirmation -->
+      <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.1);">
+        <h4 style="font-size: 13px; font-weight: 700; color: #34d399; text-transform: uppercase; margin: 0 0 12px 0;">
+          💳 Advance Payment (जमा केलेली रक्कम)
+        </h4>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">Amount Paid (₹)</label>
+            <input type="number" [(ngModel)]="form.amountPaid" name="amountPaid" min="0" placeholder="0" style="width: 100%; padding: 11px 14px; font-size: 14px; font-weight: 800; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #34d399; outline: none;" />
+          </div>
+
+          <div>
+            <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">Payment Mode</label>
+            <select [(ngModel)]="form.paymentMode" name="paymentMode" style="width: 100%; padding: 11px 14px; font-size: 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #ffffff; outline: none;">
+              <option value="UPI / GPay / PhonePe">UPI / GPay / PhonePe</option>
+              <option value="Cash">Cash (नगद)</option>
+              <option value="Bank Transfer">Bank Transfer (NEFT/IMPS)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">Transaction UTR / Ref (टीप / रिमार्क)</label>
+          <input type="text" [(ngModel)]="form.transactionRef" name="transactionRef" placeholder="Enter UPI Ref No. or Payment Notes" style="width: 100%; padding: 11px 14px; font-size: 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #ffffff; outline: none;" />
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" [disabled]="submitting" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; border: none; border-radius: 14px; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4); margin-top: 6px;">
+        <span *ngIf="!submitting">🙏 Submit Pilgrim Registration</span>
+        <span *ngIf="submitting">⏳ Submitting Registration...</span>
+      </button>
+
+    </form>
+
+  </div>
+
+</div>

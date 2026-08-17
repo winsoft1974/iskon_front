@@ -1,0 +1,385 @@
+<div class="animated-fade-in" style="padding: 24px;">
+  <!-- Header -->
+  <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.5px;">{{ t('dashTitle') }}</h1>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <!-- Scan Yatri QR Button -->
+      <button class="btn btn-outline" style="border-color: var(--primary); color: var(--primary); display: inline-flex; align-items: center; gap: 6px; font-weight: 600;" (click)="startQRScanner()">
+        📷 {{ t('ScanYatriQR') }}
+      </button>
+
+      <!-- Broadcast Center Button -->
+      <button class="btn btn-outline" style="border-color: var(--secondary); color: var(--secondary); display: inline-flex; align-items: center; gap: 6px; font-weight: 600;" (click)="showBroadcast = true">
+        💬 {{ t('BroadcastCenter') }}
+      </button>
+
+      <!-- Refresh Button -->
+      <button class="btn btn-primary" (click)="loadDashboardData()">
+        <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.213 6m0 0H16m5 2V0"></path>
+        </svg>
+        {{ t('dashRefresh') }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" style="display: flex; justify-content: center; align-items: center; height: 300px; flex-direction: column; gap: 16px;">
+    <div style="width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <p style="color: var(--text-secondary);">{{ t('dashSyncing') }}</p>
+  </div>
+
+  <div *ngIf="!loading" class="animated-fade-in">
+    <!-- Stat Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
+      <!-- Yatris -->
+      <div class="glass-panel" style="padding: 20px; display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg style="width: 24px; height: 24px; color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+        </div>
+        <div>
+          <p style="color: var(--text-secondary); font-size: 13px; font-weight: 500;">{{ t('dashTotalYatris') }}</p>
+          <h3 style="font-size: 24px; font-weight: 700; margin-top: 2px;">{{ stats.totalYatris }}</h3>
+        </div>
+      </div>
+
+      <!-- Packages -->
+      <div class="glass-panel" style="padding: 20px; display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg style="width: 24px; height: 24px; color: var(--secondary);" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+          </svg>
+        </div>
+        <div>
+          <p style="color: var(--text-secondary); font-size: 13px; font-weight: 500;">{{ t('dashActivePackages') }}</p>
+          <h3 style="font-size: 24px; font-weight: 700; margin-top: 2px;">{{ stats.totalPackages }}</h3>
+        </div>
+      </div>
+
+      <!-- Hotels -->
+      <div class="glass-panel" style="padding: 20px; display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg style="width: 24px; height: 24px; color: var(--accent-cyan);" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+        </div>
+        <div>
+          <p style="color: var(--text-secondary); font-size: 13px; font-weight: 500;">{{ t('dashAshrams') }}</p>
+          <h3 style="font-size: 24px; font-weight: 700; margin-top: 2px;">{{ stats.totalHotels }}</h3>
+        </div>
+      </div>
+
+      <!-- Vehicles -->
+      <div class="glass-panel" style="padding: 20px; display: flex; align-items: center; gap: 16px;">
+        <div style="background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg style="width: 24px; height: 24px; color: var(--accent-orange);" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+          </svg>
+        </div>
+        <div>
+          <p style="color: var(--text-secondary); font-size: 13px; font-weight: 500;">{{ t('transit') }}</p>
+          <h3 style="font-size: 24px; font-weight: 700; margin-top: 2px;">{{ stats.totalVehicles }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Financial Summary & Expense SVG Donut Chart -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+      <!-- Budget Tracker -->
+      <div class="glass-panel" style="padding: 24px;">
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+          {{ t('BudgetTracker') }}
+          <span style="font-size: 13px; font-weight: 400; color: var(--text-secondary);">{{ t('dashRevenue') }} vs {{ t('dashPending') }}</span>
+        </h3>
+        
+        <div style="margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;">
+            <span style="color: var(--text-secondary);">{{ t('dashTotalPayment') }}</span>
+            <span style="color: var(--secondary); font-weight: 600;">₹{{ stats.totalIncome | number }}</span>
+          </div>
+          <div style="background: rgba(0, 0, 0, 0.06); height: 10px; border-radius: 5px; overflow: hidden;">
+            <div style="background: var(--secondary); height: 100%; width: 100%;"></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;">
+            <span style="color: var(--text-secondary);">{{ t('dashPendingAmount') }}</span>
+            <span style="color: var(--accent-rose); font-weight: 600;">₹{{ stats.totalExpense | number }}</span>
+          </div>
+          <div style="background: rgba(0, 0, 0, 0.06); height: 10px; border-radius: 5px; overflow: hidden;">
+            <div [style.width.%]="stats.totalIncome > 0 ? (stats.totalExpense / stats.totalIncome * 100) : 0" style="background: var(--accent-rose); height: 100%;"></div>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border-color); padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <p style="font-size: 13px; color: var(--text-secondary);">{{ t('dashRevenue') }}</p>
+            <h2 [style.color]="stats.netProfit >= 0 ? 'var(--secondary)' : 'var(--accent-rose)'" style="font-size: 24px; font-weight: 700; margin-top: 2px;">
+              ₹{{ stats.netProfit | number }}
+            </h2>
+          </div>
+          <span [class.badge-success]="stats.netProfit >= 0" [class.badge-danger]="stats.netProfit < 0" class="badge">
+            {{ stats.netProfit >= 0 ? t('Surplus') : t('Deficit') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Expense Breakdown SVG Donut Chart -->
+      <div class="glass-panel" style="padding: 24px; display: flex; flex-direction: column;">
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">
+          {{ t('expenseDistTitle') }}
+        </h3>
+        
+        <div *ngIf="expenseChartData.length === 0" style="flex: 1; display: flex; justify-content: center; align-items: center; min-height: 150px; color: var(--text-muted); font-size: 14px;">
+          No expense records found to generate analysis.
+        </div>
+
+        <div *ngIf="expenseChartData.length > 0" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; align-items: center; flex: 1;">
+          <!-- SVG Donut Chart -->
+          <div style="display: flex; justify-content: center; position: relative; width: 140px; height: 140px; margin: 0 auto;">
+            <svg width="100%" height="100%" viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="rgba(0,0,0,0.04)" stroke-width="12"></circle>
+              <circle *ngFor="let item of expenseChartData"
+                      cx="50" cy="50" r="40"
+                      fill="transparent"
+                      [attr.stroke]="item.color"
+                      stroke-width="12"
+                      [attr.stroke-dasharray]="item.strokeDasharray"
+                      [attr.stroke-dashoffset]="item.strokeDashoffset"
+                      style="transition: stroke-dashoffset 0.5s ease-in-out;"></circle>
+            </svg>
+            <div style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; transform: rotate(0deg);">
+              <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Total</span>
+              <span style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₹{{ totalExpenseAmount | number }}</span>
+            </div>
+          </div>
+
+          <!-- Chart Legend List -->
+          <div style="display: flex; flex-direction: column; gap: 8px; max-height: 170px; overflow-y: auto; padding-right: 4px;">
+            <div *ngFor="let item of expenseChartData" style="display: flex; align-items: center; justify-content: space-between; font-size: 12px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div [style.background]="item.color" style="width: 10px; height: 10px; border-radius: 50%;"></div>
+                <span style="color: var(--text-secondary); font-weight: 500;">{{ item.category }}</span>
+              </div>
+              <span style="font-weight: 600; color: var(--text-primary);">{{ item.percentage | number:'1.0-1' }}% (₹{{ item.amount | number }})</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Medical & Emergency Care Alert Panel -->
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; margin-bottom: 24px;">
+      <!-- High Risk Yatris Checklist -->
+      <div class="glass-panel" style="padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 style="font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px;">🏥</span>
+            {{ t('medicalAlertTitle') }}
+          </h3>
+          <span class="badge badge-danger" style="font-size: 11px;">{{ t('CareNeeded') }}</span>
+        </div>
+
+        <div *ngIf="highRiskYatris.length === 0" style="display: flex; justify-content: center; align-items: center; height: 150px; color: var(--text-muted); font-size: 14px;">
+          No critical health risks reported for the selected package.
+        </div>
+
+        <div *ngIf="highRiskYatris.length > 0" style="display: flex; flex-direction: column; gap: 12px;">
+          <div *ngFor="let y of highRiskYatris" style="padding: 14px; background: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-weight: 700; font-size: 14px; color: var(--text-primary);">{{ y.name }}</span>
+                <span *ngIf="y.initiatedName" style="font-size: 11px; font-style: italic; color: var(--primary);">({{ y.initiatedName }})</span>
+                <span class="badge" [style.background]="y.riskLevel === 'High' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)'"
+                                     [style.color]="y.riskLevel === 'High' ? 'var(--danger)' : 'var(--accent-orange)'"
+                                     style="font-size: 9px; font-weight: 700; padding: 2px 6px;">
+                  {{ y.riskLevel }} Risk
+                </span>
+                <span *ngIf="y.bloodGroup" class="badge badge-info" style="font-size: 9px; padding: 2px 6px;">Blood: {{ y.bloodGroup }}</span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                <span *ngFor="let cond of getMedicalConditionsList(y)" style="background: rgba(0,0,0,0.04); border: 1px solid var(--border-color); font-size: 11px; padding: 2px 6px; border-radius: 4px; color: var(--text-secondary);">
+                  ⚠️ {{ cond }}
+                </span>
+              </div>
+            </div>
+            
+            <div style="text-align: right; font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+              <div style="font-weight: 600; color: var(--text-primary);">{{ t('EmergencyContact') }}:</div>
+              <div style="font-weight: 700; color: var(--text-secondary);">{{ getEmergencyContactName(y) }}</div>
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                <span style="font-weight: 600; color: var(--text-secondary);">{{ getEmergencyContactPhone(y) }}</span>
+                <button *ngIf="getEmergencyContactPhone(y) !== '-'" type="button" (click)="dialNumber(getEmergencyContactPhone(y))"
+                        style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; font-weight: 700;"
+                        title="Call Emergency Helpline">
+                  📞 Call
+                </button>
+                <button *ngIf="getEmergencyContactPhone(y) !== '-'" type="button" (click)="sendEmergencyWhatsApp(y)"
+                        style="background: #25D366; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; font-weight: 700;"
+                        title="Send SOS WhatsApp">
+                  💬 SOS
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Operations Log (Incident reports) -->
+      <div class="glass-panel" style="padding: 24px;">
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">{{ t('dashRecentActivity') }}</h3>
+        <div *ngIf="recentIncidents.length === 0" style="display: flex; justify-content: center; align-items: center; height: 150px; color: var(--text-muted); font-size: 14px;">
+          {{ t('NoAlerts') }}
+        </div>
+        <div *ngFor="let inc of recentIncidents" style="padding: 12px 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <p style="font-weight: 600; font-size: 14px; color: var(--text-primary);">{{ inc.yatriName }}</p>
+            <p style="font-size: 12px; color: var(--text-secondary);">Symptoms: {{ inc.symptoms }} | Treatment: {{ inc.treatment }}</p>
+          </div>
+          <span [class.badge-success]="inc.status === 'Treated'" [class.badge-warning]="inc.status !== 'Treated'" class="badge">
+            {{ inc.status }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px;">
+      <!-- Active Announcements -->
+      <div class="glass-panel" style="padding: 24px;">
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">{{ t('operations') }}</h3>
+        <div *ngIf="recentAnnouncements.length === 0" style="display: flex; justify-content: center; align-items: center; height: 150px; color: var(--text-muted); font-size: 14px;">
+          {{ t('NoAnnouncements') }}
+        </div>
+        <div *ngFor="let ann of recentAnnouncements" style="margin-bottom: 16px; padding: 14px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <h4 style="font-size: 15px; font-weight: 600;">{{ ann.title }}</h4>
+            <span [class.badge-danger]="ann.priority === 'Urgent'" [class.badge-info]="ann.priority !== 'Urgent'" class="badge">
+              {{ ann.priority }}
+            </span>
+          </div>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">{{ ann.content }}</p>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Time: {{ ann.time | date:'short' }}</p>
+        </div>
+      </div>
+
+      <!-- Recent Financial Inflow -->
+      <div class="glass-panel" style="padding: 24px;">
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">{{ t('dashRevenue') }}</h3>
+        <div *ngIf="recentPayments.length === 0" style="display: flex; justify-content: center; align-items: center; height: 150px; color: var(--text-muted); font-size: 14px;">
+          {{ t('NoPayments') }}
+        </div>
+        <div *ngFor="let pay of recentPayments" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+          <div>
+            <p style="font-size: 14px; font-weight: 500;">Yatri Reference: {{ pay.yatriId }}</p>
+            <p style="font-size: 11px; color: var(--text-muted);">Method: {{ pay.method }} | Date: {{ pay.date }}</p>
+          </div>
+          <p style="color: var(--secondary); font-weight: 600; font-size: 15px;">+₹{{ pay.amount | number }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Camera QR Scanner Modal -->
+<div *ngIf="showScanner" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+  <div class="glass-panel" style="width: 100%; max-width: 440px; padding: 24px; background: var(--bg-secondary); border-top: 3px solid var(--primary); text-align: center; animation: zoomIn 0.2s ease;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">📷 Scan Yatri E-Pass QR</h3>
+      <button class="btn btn-outline" style="padding: 4px 8px; border: none; font-size: 16px;" (click)="stopQRScanner()">✕</button>
+    </div>
+
+    <div style="position: relative; width: 100%; aspect-ratio: 4/3; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 16px; border: 2px solid var(--border-color);">
+      <video id="scanner-video" style="width: 100%; height: 100%; object-fit: cover;"></video>
+      <!-- Overlay scanning border box -->
+      <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 180px; height: 180px; border: 3px solid var(--primary); border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); position: relative;">
+          <!-- Laser scanning animated line -->
+          <div style="position: absolute; width: 100%; height: 2px; background: var(--primary); top: 0; left: 0; animation: laser 2s linear infinite;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scanned Success Popup -->
+    <div *ngIf="scannerSuccessMessage" style="padding: 10px; background: rgba(16,185,129,0.1); border: 1.5px solid var(--secondary); border-radius: 8px; color: var(--secondary); font-size: 13px; font-weight: 700; margin-bottom: 16px;">
+      {{ scannerSuccessMessage }}
+      <div style="font-size: 10px; font-weight: 500; color: var(--text-secondary); margin-top: 4px;">Attendance Logged Successfully! Check-In Recorded.</div>
+    </div>
+
+    <!-- Scanned Error Popup -->
+    <div *ngIf="scannerError" style="padding: 10px; background: rgba(239,68,68,0.1); border: 1.5px solid var(--danger); border-radius: 8px; color: var(--danger); font-size: 13px; font-weight: 700; margin-bottom: 16px;">
+      ⚠️ {{ scannerError }}
+    </div>
+
+    <!-- Detailed Info of Scanned Yatri -->
+    <div *ngIf="scannedYatri" class="glass-panel" style="padding: 12px; background: var(--bg-tertiary); text-align: left; font-size: 13px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;">
+      <div><strong>Name:</strong> {{ scannedYatri.name }}</div>
+      <div><strong>Yatri ID:</strong> {{ scannedYatri.id }}</div>
+      <div><strong>Allocated Room:</strong> {{ getYatriRoomInfo(scannedYatri.id) }}</div>
+      <div><strong>Allocated Bus:</strong> {{ getYatriBusInfo(scannedYatri.id) }}</div>
+    </div>
+
+    <button class="btn btn-outline" style="width: 100%; padding: 10px; border-radius: 8px;" (click)="stopQRScanner()">Cancel</button>
+  </div>
+</div>
+
+<!-- Broadcast Center Modal -->
+<div *ngIf="showBroadcast" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px;">
+  <div class="glass-panel" style="width: 100%; max-width: 580px; padding: 24px; background: var(--bg-secondary); border-top: 3px solid var(--secondary); animation: zoomIn 0.2s ease;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">💬 Broadcast Notification Center</h3>
+      <button class="btn btn-outline" style="padding: 4px 8px; border: none; font-size: 16px;" (click)="showBroadcast = false">✕</button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div>
+        <label style="font-weight: 600; font-size: 13px;">1. Select Target Pilgrims Group</label>
+        <select [(ngModel)]="broadcastTarget" style="margin-top: 6px;">
+          <option value="all">All Registered Yatris ({{ allData?.yatris.length }})</option>
+          <option value="highrisk">High/Medium Risk Yatris only ({{ highRiskYatris.length }})</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="font-weight: 600; font-size: 13px;">2. Draft WhatsApp Message Template</label>
+        <p style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Use dynamic placeholder tokens: <strong>{{ '{' }}name{{ '}' }}</strong> (pilgrim name), <strong>{{ '{' }}room{{ '}' }}</strong> (allocated hotel & room), <strong>{{ '{' }}bus{{ '}' }}</strong> (allocated bus), <strong>{{ '{' }}helpline{{ '}' }}</strong> (helpline phone number).</p>
+        <textarea [(ngModel)]="broadcastTemplate" rows="4" style="margin-top: 8px; font-size: 13px; font-family: monospace; line-height: 1.5; padding: 10px; border-radius: 8px; width: 100%;"></textarea>
+      </div>
+
+      <div>
+        <label style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block;">3. Broadcast Dispatch Queue</label>
+        <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-tertiary);">
+          <div *ngFor="let y of getBroadcastList()" style="padding: 8px 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 12px;">
+            <div style="min-width: 0; flex: 1;">
+              <div style="font-weight: 700; color: var(--text-primary);">{{ y.name }} (ID: {{ y.id }})</div>
+              <div style="font-size: 10px; color: var(--text-muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px;">Preview: {{ generateBroadcastMessage(y) }}</div>
+            </div>
+            <button class="btn btn-primary" style="font-size: 10px; padding: 4px 10px; font-weight: 700; background: #25D366; border-color: #25D366; display: flex; align-items: center; gap: 3px;" (click)="sendWhatsAppBroadcast(y)">
+              💬 Send
+            </button>
+          </div>
+          <div *ngIf="getBroadcastList().length === 0" style="padding: 16px; text-align: center; color: var(--text-muted); font-style: italic;">No pilgrims match the target criteria.</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+        <button class="btn btn-outline" (click)="showBroadcast = false">Close Broadcast Center</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes laser {
+  0% { top: 0%; opacity: 0.8; }
+  50% { top: 100%; opacity: 1; }
+  100% { top: 0%; opacity: 0.8; }
+}
+</style>
