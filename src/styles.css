@@ -1,38 +1,38 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* Colors - Clean Professional Light Theme */
-  --bg-primary: #f1f5f9;          /* Slate 100 (Soft light gray background) */
+  /* Colors - Winsoft Software Website Design System */
+  --bg-primary: #f4f7f7;          /* Soft light teal background from winsoftsc_website */
   --bg-secondary: #ffffff;        /* Pure White for panels/cards */
-  --bg-tertiary: #f8fafc;         /* Slate 50 for highlighted sections */
+  --bg-tertiary: #e8f4f5;         /* Soft Mint Tint for highlighted sections */
   
-  --primary: #4f46e5;             /* Royal Indigo (Deep professional blue) */
-  --primary-hover: #3730a3;
+  --primary: #1e94a4;             /* Winsoft Hi-Tech Primary Teal (#1E94A4) */
+  --primary-hover: #0b7989;       /* Winsoft Dark Accent (#0B7989) */
   --secondary: #059669;           /* Professional Emerald Green */
   --secondary-hover: #047857;
   
-  --accent-cyan: #0891b2;
+  --accent-cyan: #1e94a4;
   --accent-orange: #ea580c;
   --accent-rose: #e11d48;
   
   --text-primary: #0f172a;        /* Slate 900 (Dark charcoal) */
   --text-secondary: #475569;      /* Slate 600 (Medium slate gray) */
-  --text-muted: #94a3b8;          /* Slate 400 (Light gray for hints) */
+  --text-muted: #64748b;          /* Slate 500 (Muted slate gray) */
   
   --border-color: #e2e8f0;        /* Slate 200 (Clean light divider) */
-  --border-glow: rgba(79, 70, 229, 0.08);
+  --border-glow: rgba(30, 148, 164, 0.12);
   
   /* Font */
   --font-family: 'Outfit', sans-serif;
   
   /* Shadows & Elevations */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
-  --glass-shadow: 0 8px 30px 0 rgba(15, 23, 42, 0.04);
-  --glass-blur: blur(8px);
+  --shadow-md: 0 4px 20px -2px rgba(30, 148, 164, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 25px -3px rgba(30, 148, 164, 0.12), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
+  --glass-shadow: 0 8px 30px 0 rgba(30, 148, 164, 0.06);
+  --glass-blur: blur(12px);
   --border-radius: 12px;
-  --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── DARK THEME OVERRIDES ── */
@@ -186,12 +186,12 @@ label {
 .btn-primary {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 4px 14px rgba(30, 148, 164, 0.3);
 }
 .btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary) 100%);
   transform: translateY(-1.5px);
-  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 6px 18px rgba(30, 148, 164, 0.4);
 }
 
 .btn-secondary {
@@ -560,7 +560,7 @@ label {
 }
 
 .app-tab-btn:hover {
-  background: rgba(99, 102, 241, 0.08);
+  background: rgba(30, 148, 164, 0.08);
   color: var(--text-primary);
 }
 
@@ -568,7 +568,7 @@ label {
   background: var(--primary) !important;
   color: #ffffff !important;
   font-weight: 700;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 4px 14px rgba(30, 148, 164, 0.35);
   transform: translateY(-1px);
 }
 
