@@ -1,9 +1,14 @@
 {
   "version": 2,
+  "buildCommand": "ng build",
+  "outputDirectory": "dist/frontend/browser",
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "http://103.102.144.180:8081/api/$1"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
