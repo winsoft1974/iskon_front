@@ -32,17 +32,11 @@
   <div class="glass-panel" style="padding: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
     
     <!-- View Switcher Tabs -->
-    <div style="display: flex; gap: 8px;">
-      <button (click)="activeTab = 'vehicles'" 
-              [style.background]="activeTab === 'vehicles' ? 'var(--primary)' : 'var(--bg-tertiary)'"
-              [style.color]="activeTab === 'vehicles' ? '#ffffff' : 'var(--text-primary)'"
-              style="border: 1px solid var(--border-color); padding: 8px 16px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 6px;">
+    <div style="display: flex; gap: 6px;">
+      <button (click)="activeTab = 'vehicles'" [class.active]="activeTab === 'vehicles'" class="app-tab-btn">
         🚘 Vehicles List ({{ vehicles.length }})
       </button>
-      <button (click)="activeTab = 'seating'" 
-              [style.background]="activeTab === 'seating' ? 'var(--primary)' : 'var(--bg-tertiary)'"
-              [style.color]="activeTab === 'seating' ? '#ffffff' : 'var(--text-primary)'"
-              style="border: 1px solid var(--border-color); padding: 8px 16px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 6px;">
+      <button (click)="activeTab = 'seating'" [class.active]="activeTab === 'seating'" class="app-tab-btn">
         💺 Seat Allocation
       </button>
     </div>

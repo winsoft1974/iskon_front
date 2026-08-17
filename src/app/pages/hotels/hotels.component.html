@@ -20,29 +20,27 @@
     </div>
 
     <!-- ══ TABS SWITCHER ══ -->
-    <div style="display: flex; gap: 10px; align-items: center;">
+    <div class="app-action-bar">
       <button class="btn btn-outline"
         style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; border-color: #10B981; color: #10B981;"
         (click)="exportAllocationsExcel()" title="Export Room Allocations to Excel">
-        📊 Export Room Allocations (.xlsx)
+        📊 Export Allocations (.xlsx)
       </button>
 
       <button class="btn btn-outline"
         [disabled]="isEntryLocked"
         style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; border-color: var(--secondary); color: var(--secondary);"
         (click)="hotelFileInput.click()" title="Import Hotel Rooms & Yatri Allocations from Excel">
-        📥 Import Room Allocations
+        📥 Import Allocations
       </button>
       <input type="file" #hotelFileInput (change)="onExcelRoomFileSelected($event)" accept=".xlsx,.xls,.csv"
         style="display: none;" />
 
-      <button class="btn" [class.btn-primary]="activeTab === 'allocations'"
-        [class.btn-outline]="activeTab !== 'allocations'" (click)="activeTab = 'allocations'">
-        {{ t('hotelsTabAllocations') }}
+      <button class="app-tab-btn" [class.active]="activeTab === 'allocations'" (click)="activeTab = 'allocations'">
+        🏢 {{ t('hotelsTabAllocations') }}
       </button>
-      <button class="btn" [class.btn-primary]="activeTab === 'master'" [class.btn-outline]="activeTab !== 'master'"
-        (click)="activeTab = 'master'">
-        {{ t('hotelsTabMaster') }}
+      <button class="app-tab-btn" [class.active]="activeTab === 'master'" (click)="activeTab = 'master'">
+        🏨 {{ t('hotelsTabMaster') }}
       </button>
     </div>
   </div>

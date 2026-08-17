@@ -22,60 +22,33 @@
   </div>
 
   <div *ngIf="!loading" class="animated-fade-in">
-    <!-- Horizontal Tab List -->
-    <div style="display: flex; border-bottom: 1px solid var(--border-color); gap: 24px; margin-bottom: 24px; overflow-x: auto; padding-bottom: 2px;">
-      <button (click)="setTab('announcements')" 
-              [style.color]="activeTab === 'announcements' ? 'var(--primary)' : 'var(--text-secondary)'"
-              [style.border-bottom]="activeTab === 'announcements' ? '2px solid var(--primary)' : 'none'"
-              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
-        {{ t('Announcements') }}
+    <!-- Mobile App Segmented Control Tab Bar -->
+    <div class="app-tab-bar">
+      <button (click)="setTab('announcements')" [class.active]="activeTab === 'announcements'" class="app-tab-btn">
+        📢 {{ t('Announcements') }}
       </button>
-      <button (click)="setTab('volunteers')" 
-              [style.color]="activeTab === 'volunteers' ? 'var(--primary)' : 'var(--text-secondary)'"
-              [style.border-bottom]="activeTab === 'volunteers' ? '2px solid var(--primary)' : 'none'"
-              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
-        {{ t('Volunteers') }}
+      <button (click)="setTab('volunteers')" [class.active]="activeTab === 'volunteers'" class="app-tab-btn">
+        🙋 {{ t('Volunteers') }}
       </button>
-      <button (click)="setTab('incomes')" 
-              [style.color]="activeTab === 'incomes' ? 'var(--primary)' : 'var(--text-secondary)'"
-              [style.border-bottom]="activeTab === 'incomes' ? '2px solid var(--primary)' : 'none'"
-              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+      <button (click)="setTab('incomes')" [class.active]="activeTab === 'incomes'" class="app-tab-btn">
         💰 {{ t('FinanceLedger') }}
       </button>
-      <button (click)="setTab('scanner')" 
-              [style.color]="activeTab === 'scanner' ? 'var(--primary)' : 'var(--text-secondary)'"
-              [style.border-bottom]="activeTab === 'scanner' ? '2px solid var(--primary)' : 'none'"
-              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+      <button (click)="setTab('scanner')" [class.active]="activeTab === 'scanner'" class="app-tab-btn">
         📷 {{ t('CheckinScanner') }}
       </button>
-      <button *ngIf="auth.hasPermission('Food', 'view')" (click)="setTab('prasadam')" 
-              [style.color]="activeTab === 'prasadam' ? 'var(--primary)' : 'var(--text-secondary)'"
-              [style.border-bottom]="activeTab === 'prasadam' ? '2px solid var(--primary)' : 'none'"
-              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+      <button *ngIf="auth.hasPermission('Food', 'view')" (click)="setTab('prasadam')" [class.active]="activeTab === 'prasadam'" class="app-tab-btn">
         🍽️ {{ t('PrasadamTracker') }}
       </button>
-      <button *ngIf="auth.hasPermission('Medical', 'view')" (click)="setTab('medical')" 
-              [style.color]="activeTab === 'medical' ? 'var(--primary)' : 'var(--text-secondary)'"
-              [style.border-bottom]="activeTab === 'medical' ? '2px solid var(--primary)' : 'none'"
-              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
-        {{ t('MedicalIncidents') }}
+      <button *ngIf="auth.hasPermission('Medical', 'view')" (click)="setTab('medical')" [class.active]="activeTab === 'medical'" class="app-tab-btn">
+        🩺 {{ t('MedicalIncidents') }}
       </button>
-      <button *ngIf="auth.hasPermission('General', 'view')" (click)="setTab('lost')" 
-              [style.color]="activeTab === 'lost' ? 'var(--primary)' : 'var(--text-secondary)'"
-              [style.border-bottom]="activeTab === 'lost' ? '2px solid var(--primary)' : 'none'"
-              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 600; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
-        {{ t('LostAndFound') }}
+      <button *ngIf="auth.hasPermission('General', 'view')" (click)="setTab('lost')" [class.active]="activeTab === 'lost'" class="app-tab-btn">
+        🔍 {{ t('LostAndFound') }}
       </button>
-      <button *ngIf="isKasAuthority" (click)="setTab('permissions'); loadPermissionMatrix()" 
-              [style.color]="activeTab === 'permissions' ? 'var(--primary)' : 'var(--text-secondary)'"
-              [style.border-bottom]="activeTab === 'permissions' ? '2px solid var(--primary)' : 'none'"
-              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 700; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
-        ⚙️ Role Permissions Matrix
+      <button *ngIf="isKasAuthority" (click)="setTab('permissions'); loadPermissionMatrix()" [class.active]="activeTab === 'permissions'" class="app-tab-btn">
+        ⚙️ Role Matrix
       </button>
-      <button *ngIf="isKasAuthority" (click)="setTab('auditLogs')" 
-              [style.color]="activeTab === 'auditLogs' ? 'var(--primary)' : 'var(--text-secondary)'"
-              [style.border-bottom]="activeTab === 'auditLogs' ? '2px solid var(--primary)' : 'none'"
-              style="background: transparent; border: none; font-family: var(--font-family); font-size: 15px; font-weight: 700; padding: 10px 4px; cursor: pointer; outline: none; transition: var(--transition);">
+      <button *ngIf="isKasAuthority" (click)="setTab('auditLogs')" [class.active]="activeTab === 'auditLogs'" class="app-tab-btn">
         📜 Audit Logs
       </button>
     </div>
