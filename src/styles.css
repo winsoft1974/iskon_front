@@ -601,4 +601,26 @@ label {
   }
 }
 
+/* Responsive AI Voice Chatbot Positioning & Mobile Elevation */
+.chatbot-widget-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  font-family: sans-serif;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 768px) {
+  .chatbot-widget-container {
+    bottom: 78px !important;
+    right: 16px !important;
+  }
+}
+
+
 
