@@ -692,5 +692,16 @@ label {
   background: #475569;
 }
 
+/* Sidebar Logout Button Hover Effect */
+.sidebar-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #dc2626 !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+.sidebar-logout-btn:hover svg {
+  color: #dc2626 !important;
+}
+
 
 
