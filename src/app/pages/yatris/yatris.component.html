@@ -261,6 +261,12 @@
                     ❌
                   </button>
                   <button class="btn-icon-action" 
+                          style="background: rgba(37, 211, 102, 0.15); border: 1.5px solid rgba(37, 211, 102, 0.4); color: #25D366; cursor: pointer; padding: 3px 6px; border-radius: 8px; font-size: 14px; transition: transform 0.15s;" 
+                          (click)="shareEPassWhatsApp(y); $event.stopPropagation()" 
+                          title="Send Yatra E-Pass Details via WhatsApp">
+                    💬
+                  </button>
+                  <button class="btn-icon-action" 
                           style="background: none; border: none; cursor: pointer; padding: 2px; font-size: 15px;" 
                           (click)="openIdBadgeModal(y); $event.stopPropagation()" 
                           title="Official Yatra E-Pass & ID Card">
@@ -324,13 +330,15 @@
 
               <!-- 4. Mobile -->
               <td style="padding: 12px 14px; color: var(--text-secondary); font-size: 13px; font-weight: 500;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <span (click)="toggleYatriRow(y.id)" style="cursor: pointer;">{{ y.phone || '-' }}</span>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <span (click)="toggleYatriRow(y.id)" style="cursor: pointer; font-weight: 700; color: var(--text-primary);">{{ y.phone || '-' }}</span>
                   <button *ngIf="y.phone" type="button" 
-                          (click)="contactYatriWhatsApp(y); $event.stopPropagation()"
-                          style="background: transparent; border: none; cursor: pointer; padding: 2px; font-size: 13px; display: inline-flex;" 
-                          title="Message Yatri via WhatsApp">
-                    💬
+                          (click)="shareEPassWhatsApp(y); $event.stopPropagation()"
+                          style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: #ffffff; border: none; border-radius: 20px; padding: 4px 11px; cursor: pointer; font-size: 11.5px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 3px 10px rgba(37, 211, 102, 0.35); transition: transform 0.15s;" 
+                          onmouseover="this.style.transform='scale(1.05)'"
+                          onmouseout="this.style.transform='scale(1)'"
+                          title="1-Touch Direct WhatsApp Message & E-Pass">
+                    💬 WhatsApp
                   </button>
                 </div>
               </td>
