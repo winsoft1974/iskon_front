@@ -362,8 +362,8 @@
     </div>
   </div>
 
-  <!-- Mobile Bottom Navigation Dock -->
-  <div class="mobile-bottom-dock">
+  <!-- Mobile Bottom Navigation Dock (Hidden on Login page) -->
+  <div *ngIf="!isLoginPage" class="mobile-bottom-dock">
     <a routerLink="/dashboard" routerLinkActive="active" class="dock-item">
       <span class="dock-icon">📊</span>
       <span class="dock-label">{{ t('dashboard') }}</span>
