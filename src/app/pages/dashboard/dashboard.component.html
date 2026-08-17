@@ -263,7 +263,15 @@
             </span>
           </div>
           <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">{{ ann.content }}</p>
-          <p style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Time: {{ ann.time | date:'short' }}</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+            <span style="font-size: 11px; color: var(--text-muted);">Time: {{ ann.time | date:'short' }}</span>
+            <button type="button" class="btn btn-outline"
+                    style="font-size: 11px; padding: 3px 9px; border-color: #6366f1; color: #6366f1; display: inline-flex; align-items: center; gap: 4px; background: rgba(99,102,241,0.06); cursor: pointer; font-weight: 700; border-radius: 6px;"
+                    (click)="speakAnnouncementText(ann.title + '. ' + ann.content)"
+                    title="Speak Announcement Voice">
+              🔊 आवाजात ऐका
+            </button>
+          </div>
         </div>
       </div>
 

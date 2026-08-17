@@ -2318,6 +2318,49 @@ export class OperationsComponent implements OnInit, OnDestroy {
     this.newAnnouncement = { id: null, title: '', content: '', priority: 'Normal', packageId: null };
   }
 
+  // ── 🔊 Audio Chime & Speech Synthesis Readout ──
+  playAlertChime() {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.35);
+    } catch (e) {}
+  }
+
+  speakAnnouncementText(text: string, event?: Event) {
+    if (event) event.stopPropagation();
+    if (!text) return;
+    this.playAlertChime();
+    if (!('speechSynthesis' in window)) {
+      alert('तुमच्या ब्राऊझरमध्ये व्हॉईस रीडआउट सपोर्ट उपलब्ध नाही.');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    const currentLang = this.lang?.current || 'english';
+    if (currentLang === 'marathi') {
+      utterance.lang = 'mr-IN';
+    } else if (currentLang === 'hindi') {
+      utterance.lang = 'hi-IN';
+    } else if (currentLang === 'kannada') {
+      utterance.lang = 'kn-IN';
+    } else {
+      utterance.lang = 'en-US';
+    }
+    utterance.rate = 0.95;
+    utterance.pitch = 1.05;
+    window.speechSynthesis.speak(utterance);
+  }
+
   addAnnouncement() {
     if (!this.newAnnouncement.title || !this.newAnnouncement.content) {
       this.showValidation('⚠️ कृपया शीर्षक आणि मजकूर (Title and Content) दोन्ही लिहा.');
@@ -2338,6 +2381,9 @@ export class OperationsComponent implements OnInit, OnDestroy {
       time: new Date().toISOString(),
       priority: this.newAnnouncement.priority || 'Normal'
     };
+
+    // Trigger Audio Alert Chime & Voice Readout for Announcement
+    this.speakAnnouncementText(payload.title + '. ' + payload.content);
 
     if (this.isEditAnnouncement && this.newAnnouncement.id) {
       const annId = this.newAnnouncement.id;

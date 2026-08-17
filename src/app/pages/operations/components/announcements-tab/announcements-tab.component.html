@@ -53,7 +53,13 @@
         <span style="font-size: 11px; color: var(--text-muted);">
           Broadcasted on: {{ ann.time | date:'medium' }}
         </span>
-        <div style="display: flex; gap: 6px; align-items: center;">
+        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+          <button type="button" class="btn btn-outline"
+                  style="font-size: 11px; padding: 4px 10px; border-color: #6366f1; color: #6366f1; display: inline-flex; align-items: center; gap: 4px; background: rgba(99,102,241,0.06); cursor: pointer; font-weight: 700; border-radius: 6px;"
+                  (click)="ops.speakAnnouncementText(ann.title + '. ' + ann.content, $event)"
+                  title="Speak Announcement Voice">
+            🔊 आवाजात ऐका
+          </button>
           <button type="button" class="btn btn-outline"
                   style="font-size: 11px; padding: 4px 8px; border-color: var(--primary); color: var(--primary); display: inline-flex; align-items: center; gap: 4px; background: transparent; cursor: pointer; font-weight: 700; border-radius: 6px;"
                   (click)="ops.openEditAnnouncement(ann, $event)"
