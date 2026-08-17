@@ -75,9 +75,9 @@
   <!-- Main Content Wrapper -->
   <div style="flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden;">
     <!-- Top Header (Hidden on Login page) -->
-    <header *ngIf="!isLoginPage" class="glass-panel app-header" style="min-height: 64px; border-radius: 0; border: none; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: linear-gradient(90deg, var(--header-accent-bg, rgba(79,70,229,0.06)) 0%, var(--bg-secondary) 60%); flex-wrap: wrap; gap: 12px;">
+    <header *ngIf="!isLoginPage" class="glass-panel app-header" style="height: 64px; min-height: 64px; border-radius: 0; border: none; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: linear-gradient(90deg, rgba(30,148,164,0.06) 0%, var(--bg-secondary) 60%); flex-wrap: nowrap; gap: 12px; overflow-x: auto; white-space: nowrap;">
 
-      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
         <!-- Mobile Menu Hamburger Button -->
         <button class="mobile-menu-btn" (click)="toggleMobileMenu()" title="Toggle Menu">
           <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +93,7 @@
           <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">{{ t('activeTour') }}</span>
           <select [ngModel]="selectedPackageId" (ngModelChange)="onPackageChange($event)"
                   [disabled]="packages.length === 0 || !isKasAuthority"
-                  style="min-width: 200px; max-width: 280px; padding: 7px 12px; font-size: 13px; font-weight: 600; border-radius: 8px; background: var(--bg-primary); border: 1.5px solid var(--primary); color: var(--text-primary); outline: none; cursor: pointer;">
+                  style="min-width: 180px; max-width: 260px; height: 36px; padding: 0 12px; font-size: 13px; font-weight: 600; border-radius: 8px; background: var(--bg-primary); border: 1.5px solid var(--primary); color: var(--text-primary); outline: none; cursor: pointer; display: inline-flex; align-items: center;">
             <option *ngIf="isKasAuthority" value="">{{ packages.length === 0 ? t('loading') : t('allPackages') }}</option>
             <option *ngFor="let pkg of packages" [value]="pkg.id">{{ pkg.name }}</option>
           </select>
@@ -101,7 +101,7 @@
       </div>
 
       <!-- User profile + Settings -->
-      <div style="display: flex; align-items: center; gap: 12px; position: relative;">
+      <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0; position: relative;">
         <div style="text-align: right;">
           <p style="font-size: 13px; font-weight: 600; color: var(--text-primary);">{{ currentFullName }}</p>
           <p style="font-size: 11px; color: var(--text-muted);">{{ roleBadge }}</p>

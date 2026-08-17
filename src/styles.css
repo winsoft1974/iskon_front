@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   /* Colors - Winsoft Software Website Design System */
@@ -22,8 +22,8 @@
   --border-color: #e2e8f0;        /* Slate 200 (Clean light divider) */
   --border-glow: rgba(30, 148, 164, 0.12);
   
-  /* Font */
-  --font-family: 'Outfit', sans-serif;
+  /* Font - Winsoft SC DM Sans & Inter Typography */
+  --font-family: 'DM Sans', 'Inter', -apple-system, system-ui, sans-serif;
   
   /* Shadows & Elevations */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
